@@ -1,0 +1,14 @@
+{
+    "userInfos" : [
+        {
+            "target":"earthExplorer",
+            "id" : "ymseo",
+            "passwd" : "geopeopleseo4655"
+        },
+        {
+            "target":"copernicus",
+            "id" : "ymseo",
+            "passwd" : "sseo4655"
+        }
+    ]
+}

@@ -1,0 +1,113 @@
+import sys
+from datetime import datetime, timedelta
+from time import sleep
+from xmlrpc.client import DateTime
+import requests
+from bs4 import BeautifulSoup
+import psycopg2
+
+def xstr(s):
+    if s is None:
+        return None
+    return format(float(s.string), ".2f")
+
+# 저수지
+fac = []
+
+# DB
+connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
+cursor = connection.cursor()
+
+# 저수지 Select
+sql = "SELECT fac_code FROM tb_reservoir order by fac_code"
+
+cursor.execute(sql)
+result = cursor.fetchall()
+
+for data in result:
+    fac.append(data[0])
+
+# API
+url = 'http://apis.data.go.kr/B552149/reserviorWaterLevel/reservoirlevel/'
+params = {
+            'serviceKey' : 'gKwMHq7ihGLuc/D41kRJP5xjtNjcl/eQHsOhiaJTbXUpnATpQFaC+Nby8aYFv5No+Pme9T9zuhbGJbrS3zBWMA==',
+            'pageNo' : '1', #페이지 번호
+            'numOfRows' : '365', #한 페이지 결과 수
+            'fac_code' : '4423010045',  #저수지 코드
+            'date_s' : '20220101',  #조회 시작 날짜
+            'date_e' : '20221231'   #조회 끝 날짜, 1년이 최대
+        }
+
+# 처리 시작
+print(len(fac))
+
+count = 0;
+
+for i in fac:
+    count = count + 1
+    params['fac_code'] = i
+    
+    while True:
+        try:
+            start = int(str(datetime.today().year) + "0101")
+            end = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
+            #end = int(datetime.today().strftime("%Y%m%d")) # 오늘
+            
+            #마지막 측정일 산출
+            sql = "SELECT check_date FROM tb_water_level WHERE fac_code = '" + str(i) + "' ORDER BY check_date DESC limit 1"
+            
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            
+            if result is not None:
+                start = datetime.strptime(str(result[0]), "%Y%m%d") + timedelta(days=1) # 마지막날짜에 다음날
+                start = int(start.strftime("%Y%m%d"))
+                
+            if start > end:
+                break
+            
+            # Insert 쿼리
+            sql = "INSERT INTO tb_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s)"
+            
+            params['date_s'] = str(start)
+            params['date_e'] = str(end)
+            
+            print(str(count) + " : " + params['fac_code'] + " - " + params['date_s'] + " ~ " + params['date_e'])
+            response = requests.get(url, params=params)
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'lxml-xml')
+            
+                if soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '00':
+                    for item in soup.find_all('item'):
+                        cursor.execute(sql, (item.fac_code.string, item.check_date.string, xstr(item.water_level), xstr(item.rate)))
+                    
+                    connection.commit()
+                    break
+                elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '99':
+                    print(" ㄴ 데이터 없음")
+                    break
+                elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '22':
+                    # 서비스 요청제한 횟수 초과시 중지
+                    print(soup.find('returnAuthMsg').string)
+                    connection.close()
+                    cursor.close()
+                    sys.exit()
+                else:
+                    # 기타 오류
+                    print(soup.find('returnAuthMsg').string)
+                    break
+                    #raise Exception('XML PARSE ERROR')
+            else:
+                # Http 접속 오류
+                raise Exception('HTTP CONNECTION ERROR')
+        except Exception as e:
+            print(e)
+            print("SLEEP 10sec...")
+            sleep(10)
+            print("Retry")
+            continue
+
+connection.close()
+cursor.close()
+print("종료")
