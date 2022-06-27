@@ -5,9 +5,8 @@ import requests
 import re
 import requests
 from sqlalchemy import false, null
-from database.psqlcrud import CRUD  #db 연결 관련 클래스
+from psql_crud import CRUD  #db 연결 관련 클래스
 import unicodedata
-from logger_gp import*
 import time
 
 #각 크롤링 결과 저장하기 위한 리스트 선언 
@@ -46,7 +45,6 @@ def get_requests_url(url) :
         return  requests.get(url,headers=header)
     except Exception as e:
         time.sleep(1)
-        #logger.error(f'Timeout 에러라 재시도 :{e}')
         return get_requests_url(url)
   
 
@@ -142,8 +140,7 @@ def get_news_list(news_keyword, sort, start_date, end_date):
                     news_result_arr.append([news_sj, news_url, new_source, news_cl_code])   
                 
             page += 10
-        
-    logger.info(f' 총 조회목록 갯수 :{len(news_result_arr)}') 
+    print(" 총 조회목록 갯수 " + len(news_result_arr))
 
     for news_result in news_result_arr :     
         
@@ -154,8 +151,7 @@ def get_news_list(news_keyword, sort, start_date, end_date):
         
         if(exist_flag == False) :
             db_connect.insertDB(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code',data=insert_column)
-
-    logger.info("------------------ 기사 목록 INSERT 완료 ------------------")
+    print("------------------ 기사 목록 INSERT 완료 ------------------")
     #update_news_content(start_date,  end_date) 
 
 
@@ -336,8 +332,6 @@ def update_news_content(start_date, end_date):
             news_condition = "news_dc_code = '"+ comment_cd + "'"
             db_connect.updateDB(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
            
-            
-    logger.info("------------------ 기사 상세내용 UPDATE 완료 ------------------")
 
 def do_crawling(seach_year):
 
