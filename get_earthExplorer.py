@@ -1,13 +1,13 @@
 import rpa as r
 
-def explorer_info(userID, userPwd, rpaInfo):
+def explorer_info(user_id, user_pwd, rpa_info):
     
     r.init()
     # earthdata login
     r.url('https://urs.earthdata.nasa.gov/home')
     if (r.exist('//input[@name="commit"]')):
-        r.type('//input[@id="username"]', '[clear]' + rpaInfo['earthdata_id'])
-        r.type('//input[@id="password"]', '[clear]' + rpaInfo['earthdata_pwd'])    
+        r.type('//input[@id="username"]', '[clear]' + rpa_info['earthdata_id'])
+        r.type('//input[@id="password"]', '[clear]' + rpa_info['earthdata_pwd'])    
         r.click('//input[@name="commit"]')   
     
     r.dom('document.body.insertAdjacentHTML("afterbegin","<a href=\'https://earthexplorer.usgs.gov\' target=\'_blank\' id=\'earthexplorer\'>earthexplorer</a>");')
@@ -19,31 +19,31 @@ def explorer_info(userID, userPwd, rpaInfo):
     if (r.exist('//a[@href="/login"]')):
         r.click('//div[@id="navbar-menu"]//ul[3]//li[3]//a')
         r.wait(3)
-        r.type('//input[@placeholder=" Registered USGS Username"]', userID)
-        r.type('//input[@placeholder="Registered USGS Password"]', userPwd)
+        r.type('//input[@placeholder=" Registered USGS Username"]', user_id)
+        r.type('//input[@placeholder="Registered USGS Password"]', user_pwd)
         r.click('//input[@id="loginButton"]')
         r.wait(3)
 
     # select tab1
     r.click('//div[@id="tab1"]')
 
-    if rpaInfo['area'] == 'tabCircle':
+    if rpa_info['area'] == 'tabCircle':
         
         # circle button
         r.click('//div[@id="tabCircle"]')
 
         # type center lat, lon, radius 
-        r.type('//*[@id="centerLat"]', '[clear]' + rpaInfo['centerLat'])
-        r.type('//*[@id="centerLng"]', '[clear]' + rpaInfo['centerLng'])
-        r.select('//select[@id="unitType"]', rpaInfo['unitType'])
-        r.type('//*[@id="circleRadius"]', '[clear]' +  rpaInfo['circleRadius'])
+        r.type('//*[@id="centerLat"]', '[clear]' + rpa_info['centerLat'])
+        r.type('//*[@id="centerLng"]', '[clear]' + rpa_info['centerLng'])
+        r.select('//select[@id="unitType"]', rpa_info['unitType'])
+        r.type('//*[@id="circleRadius"]', '[clear]' +  rpa_info['circleRadius'])
 
         # click apply button
         r.click('//input[@id="circleEntryApply"]')
 
     # set date range
-    r.type('//*[@id="start_linked"]', '[clear]' + rpaInfo['start_linked'])
-    r.type('//*[@id="end_linked"]', '[clear]' + rpaInfo['end_linked'])
+    r.type('//*[@id="start_linked"]', '[clear]' + rpa_info['start_linked'])
+    r.type('//*[@id="end_linked"]', '[clear]' + rpa_info['end_linked'])
 
     # click Data Sets button
     r.click('//div[@class="tabButtonContainer tabButtons"]//input[@title="Data Sets"]')
@@ -52,7 +52,7 @@ def explorer_info(userID, userPwd, rpaInfo):
     r.click('//span[@id="refreshDatasetList"]')
 
     # select dataset
-    for item  in rpaInfo['dataset']: 
+    for item  in rpa_info['dataset']: 
         r.click(item)
         if (r.exist('//a[normalize-space()="NASA Earthdata Login Credentials"]')):
             r.click('//button[normalize-space()="OK"]')              

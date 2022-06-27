@@ -8,15 +8,9 @@ import requests
 from bs4 import BeautifulSoup
 import psycopg2
 
-def xstr(s):
-    if s is None:
-        return None
-    return s.string
-
 # API
-# API
-url = 'http://apis.data.go.kr/B552149/reserviorWaterLevel/reservoircode/'
-params = {
+reservior_info_url = 'http://apis.data.go.kr/B552149/reserviorWaterLevel/reservoircode/'
+reservior_info_params = {
             'serviceKey' : 'gKwMHq7ihGLuc/D41kRJP5xjtNjcl/eQHsOhiaJTbXUpnATpQFaC+Nby8aYFv5No+Pme9T9zuhbGJbrS3zBWMA==',
             'pageNo' : '1', #페이지 번호
             'numOfRows' : '9999', #한 페이지 결과 수
@@ -24,7 +18,7 @@ params = {
         }
 
 # 17개 시도
-fac = ['강원도','경기도','경상남도','경상북도','광주광역시','대구광역시','대전광역시','부산광역시','서울특별시','세종특별자치시','울산광역시','인천광역시','전라남도','전라북도','제주특별자치도','충청남도','충청북도']
+sido_list = ['강원도','경기도','경상남도','경상북도','광주광역시','대구광역시','대전광역시','부산광역시','서울특별시','세종특별자치시','울산광역시','인천광역시','전라남도','전라북도','제주특별자치도','충청남도','충청북도']
 
 # DB Connection
 connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
@@ -35,14 +29,14 @@ sql = "INSERT INTO tb_asos_data(fac_code, name, location, start_year, const_year
 # 처리 시작
 count = 0;
 
-for i in fac:
+for i in sido_list:
     count = count + 1
-    params['county'] = i
+    reservior_info_params['county'] = i
     
     while True:
         try:
-            print(str(count) + " : " + params['county'])
-            response = requests.get(url, params=params, allow_redirects=False)
+            print(str(count) + " : " + reservior_info_params['county'])
+            response = requests.get(reservior_info_url, params=reservior_info_params, allow_redirects=False)
 
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'lxml-xml')

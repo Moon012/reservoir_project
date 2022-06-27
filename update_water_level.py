@@ -6,13 +6,13 @@ import requests
 from bs4 import BeautifulSoup
 import psycopg2
 
-def xstr(s):
+def reservoir_level_fomatter(s):
     if s is None:
         return None
     return format(float(s.string), ".2f")
 
 # 저수지
-fac = []
+reservoir = []
 
 # DB
 connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
@@ -25,11 +25,11 @@ cursor.execute(sql)
 result = cursor.fetchall()
 
 for data in result:
-    fac.append(data[0])
+    reservoir.append(data[0])
 
 # API
-url = 'http://apis.data.go.kr/B552149/reserviorWaterLevel/reservoirlevel/'
-params = {
+reservoir_level_url = 'http://apis.data.go.kr/B552149/reserviorWaterLevel/reservoirlevel/'
+reservoir_level_params = {
             'serviceKey' : 'gKwMHq7ihGLuc/D41kRJP5xjtNjcl/eQHsOhiaJTbXUpnATpQFaC+Nby8aYFv5No+Pme9T9zuhbGJbrS3zBWMA==',
             'pageNo' : '1', #페이지 번호
             'numOfRows' : '365', #한 페이지 결과 수
@@ -39,18 +39,18 @@ params = {
         }
 
 # 처리 시작
-print(len(fac))
+print(len(reservoir))
 
 count = 0;
 
-for i in fac:
+for i in reservoir:
     count = count + 1
-    params['fac_code'] = i
+    reservoir_level_params['fac_code'] = i
     
     while True:
         try:
-            start = int(str(datetime.today().year) + "0101")
-            end = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
+            start_date = int(str(datetime.today().year) + "0101")
+            end_date = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
             #end = int(datetime.today().strftime("%Y%m%d")) # 오늘
             
             #마지막 측정일 산출
@@ -60,32 +60,32 @@ for i in fac:
             result = cursor.fetchone()
             
             if result is not None:
-                start = datetime.strptime(str(result[0]), "%Y%m%d") + timedelta(days=1) # 마지막날짜에 다음날
-                start = int(start.strftime("%Y%m%d"))
+                start_date = datetime.strptime(str(result[0]), "%Y%m%d") + timedelta(days=1) # 마지막날짜에 다음날
+                start_date = int(start_date.strftime("%Y%m%d"))
                 
-            if start > end:
+            if start_date > end_date:
                 break
             
             # Insert 쿼리
             sql = "INSERT INTO tb_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s)"
             
-            params['date_s'] = str(start)
-            params['date_e'] = str(end)
+            reservoir_level_params['date_s'] = str(start_date)
+            reservoir_level_params['date_e'] = str(end_date)
             
-            print(str(count) + " : " + params['fac_code'] + " - " + params['date_s'] + " ~ " + params['date_e'])
-            response = requests.get(url, params=params)
+            print(str(count) + " : " + reservoir_level_params['fac_code'] + " - " + reservoir_level_params['date_s'] + " ~ " + reservoir_level_params['date_e'])
+            response = requests.get(reservoir_level_url, params=reservoir_level_params)
             
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'lxml-xml')
             
                 if soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '00':
                     for item in soup.find_all('item'):
-                        cursor.execute(sql, (item.fac_code.string, item.check_date.string, xstr(item.water_level), xstr(item.rate)))
+                        cursor.execute(sql, (item.fac_code.string, item.check_date.string, reservoir_level_fomatter(item.water_level), reservoir_level_fomatter(item.rate)))
                     
                     connection.commit()
                     break
                 elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '99':
-                    print(" ㄴ 데이터 없음")
+                    print("데이터 없음")
                     break
                 elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '22':
                     # 서비스 요청제한 횟수 초과시 중지
