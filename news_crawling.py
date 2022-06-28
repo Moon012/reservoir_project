@@ -18,7 +18,7 @@ contents_text=[]
 link_category_cd=[]  # 네이버 기사 카테고리 코드
 
 #사용하고자 하는 테이블명
-table_name = 'news_colct' 
+table_name = 'wss_news_colct' 
 
 # 모든 신문사
 press_num_list = ['1005', '1020', '1021', '1022' , '1023', '1025' , '1028', '1032', '1081', '1469' ,

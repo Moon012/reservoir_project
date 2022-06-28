@@ -24,7 +24,7 @@ sido_list = ['강원도','경기도','경상남도','경상북도','광주광역
 connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
 cursor = connection.cursor()
 # Insert 쿼리
-sql = "INSERT INTO tb_asos_data(fac_code, name, location, start_year, const_year, class, division, watershed_area, flood_area, full_area, benefit_area, drought_freq, flood_freq, dam_type, dam_volume, dam_width, dam_height, total_storage, effect_storage, dead_storage, intake_type, flood_level, full_level, dead_level) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+sql = "INSERT INTO wss_asos_data(fac_code, name, location, start_year, const_year, class, division, watershed_area, flood_area, full_area, benefit_area, drought_freq, flood_freq, dam_type, dam_volume, dam_width, dam_height, total_storage, effect_storage, dead_storage, intake_type, flood_level, full_level, dead_level) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
 # 처리 시작
 count = 0;

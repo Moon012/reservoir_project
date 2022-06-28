@@ -33,7 +33,7 @@ connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postg
 cursor = connection.cursor()
 
 # 관측소 Select
-sql = "SELECT station_id FROM tb_asos WHERE end_date IS NULL"
+sql = "SELECT station_id FROM wss_asos WHERE end_date IS NULL"
 
 cursor.execute(sql)
 result = cursor.fetchall()
@@ -54,7 +54,7 @@ for i in observatory:
             end = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
             
             #마지막 측정일 산출
-            sql = "SELECT tm FROM tb_asos_data WHERE stnid = '" + str(i) + "' ORDER BY tm DESC limit 1"
+            sql = "SELECT tm FROM wss_asos_data WHERE stnid = '" + str(i) + "' ORDER BY tm DESC limit 1"
             
             cursor.execute(sql)
             result = cursor.fetchone()
@@ -67,7 +67,7 @@ for i in observatory:
                 break
             
             # Insert 쿼리
-            sql = "INSERT INTO tb_asos_data(stnid, stnnm, tm, avgta, minta, mintahrmt, maxta, maxtahrmt, mi10maxrn, mi10maxrnhrmt, hr1maxrn, hr1maxrnhrmt, sumrndur, sumrn, maxinsws, maxinswswd, maxinswshrmt, maxws, maxwswd, maxwshrmt, avgws, hr24sumrws, maxwd, avgtd, minrhm, minrhmhrmt, avgrhm, avgpv, avgpa, maxps, maxpshrmt, minps, minpshrmt, avgps, ssdur, sumsshr, hr1maxicsrhrmt, hr1maxicsr, sumgsr, ddmefs, ddmefshrmt, ddmes, ddmeshrmt, sumdpthfhsc, avgtca, avglmac, avgts, mintg, avgcm5te, avgcm10te, avgcm20te, avgcm30te, avgm05te, avgm10te, avgm15te, avgm30te, avgm50te, sumlrgev, sumsmlev, n99rn, iscs, sumfogdur) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            sql = "INSERT INTO wss_asos_data(stnid, stnnm, tm, avgta, minta, mintahrmt, maxta, maxtahrmt, mi10maxrn, mi10maxrnhrmt, hr1maxrn, hr1maxrnhrmt, sumrndur, sumrn, maxinsws, maxinswswd, maxinswshrmt, maxws, maxwswd, maxwshrmt, avgws, hr24sumrws, maxwd, avgtd, minrhm, minrhmhrmt, avgrhm, avgpv, avgpa, maxps, maxpshrmt, minps, minpshrmt, avgps, ssdur, sumsshr, hr1maxicsrhrmt, hr1maxicsr, sumgsr, ddmefs, ddmefshrmt, ddmes, ddmeshrmt, sumdpthfhsc, avgtca, avglmac, avgts, mintg, avgcm5te, avgcm10te, avgcm20te, avgcm30te, avgm05te, avgm10te, avgm15te, avgm30te, avgm50te, sumlrgev, sumsmlev, n99rn, iscs, sumfogdur) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 
             asos_data_params['startDt'] = str(start)
             asos_data_params['endDt'] = str(end)

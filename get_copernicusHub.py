@@ -47,7 +47,7 @@ def scraping_info_download(user_id, user_pwd, query_info, save_csv):
 
 
 def scraping_info(user_id, user_pwd, query_info, save_csv):
-    print("scraping copernicus_product_info start!")
+    print("scraping wss_copernicus_product_info start!")
 
     scraping_info_time = datetime.now()
 
@@ -67,11 +67,11 @@ def scraping_info(user_id, user_pwd, query_info, save_csv):
     products_df.index = range(1, len(products_df) + 1)
 
     # selective dataframe
-    products_df_filtered = products_df[["product_id", "title", "summary", "datatakesensingstart",
+    products_df_filtered = products_df[["product_id", "product_title", "product_sumry", "datatakesensingstart",
                                         "ingestiondate", "cloudcoverpercentage", "platformserialidentifier", "processinglevel", "producttype"]]
 
     # rename dataframe columns
-    products_df_filtered.columns = ["product_id", "title", "summary", "data_take_sensing_start", "ingestion_date",
+    products_df_filtered.columns = ["product_id", "product_title", "product_sumry", "data_take_sensing_start", "ingestion_date",
                                     "cloud_cover_percentage", "platform_serial_identifier", "processing_level", "product_type"]
 
     # add scraping time
@@ -91,7 +91,7 @@ def scraping_info(user_id, user_pwd, query_info, save_csv):
     result = len(products_df)
     print(f"result : {result}")
         
-    print("scraping copernicus_product_info end!")
+    print("scraping wss_copernicus_product_info end!")
     return products_df_filtered
 
 
@@ -100,7 +100,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
     scraping_download_time = datetime.now()
 
     downloaded_df = pd.DataFrame(
-        columns=["product_id", "file_name", "size", "path", "download_date"])
+        columns=["product_id", "file_name", "file_size", "file_path", "file_download_date"])
     try:
         # connect to the API
         api = SentinelAPI(
@@ -126,9 +126,9 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
                     print('LTATriggered : {row.product_id} LTATriggered')                                        
                 else:
                     downloaded_df.loc[row.Index] = [product_info['id'], product_info['Filename'],
-                                                product_info['size'], output_dir + "\\" + product_info['Filename'], download_time]
+                                                product_info['file_size'], output_dir + "\\" + product_info['Filename'], download_time]
                     # downloaded file insert to db
-                    execute_values(downloaded_df, con_info, 'copernicus_product_file')
+                    execute_values(downloaded_df, con_info, 'wss_copernicus_product_file')
             else:
                 print(f'Product {row.product_id} is not online.')
 
@@ -143,7 +143,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
 
 
 def update_status(user_id, user_pwd, con_info):
-    print("update copernicus_product_info status start!")
+    print("update wss_copernicus_product_info status start!")
      
     status_update_time = datetime.now()
     
@@ -153,9 +153,9 @@ def update_status(user_id, user_pwd, con_info):
                             user=con_info['user'], password=con_info['password'], port=con_info['port'])
     cur = conn.cursor()
     
-    select_query = "select product_id, title from copernicus_product_info where status != 'downloaded' order by data_take_sensing_start asc"
-    retrieval_query = "select product_id from copernicus_product_info where status = 'retrieval' order by data_take_sensing_start asc"
-    update_query = "update copernicus_product_info set status = %s, update_date = %s  where product_id = %s" 
+    select_query = "select product_id, product_title from wss_copernicus_product_info where status != 'downloaded' order by data_take_sensing_start asc"
+    retrieval_query = "select product_id from wss_copernicus_product_info where status = 'retrieval' order by data_take_sensing_start asc"
+    update_query = "update wss_copernicus_product_info set status = %s, update_date = %s  where product_id = %s" 
        
     try:
         # connect to the API
@@ -173,7 +173,7 @@ def update_status(user_id, user_pwd, con_info):
 
             is_online = product_info['Online']
             
-            filename = output_dir + "\\" + row.title + '.zip'
+            filename = output_dir + "\\" + row.product_title + '.zip'
             downloaded = path.exists(filename)
             
             if downloaded:
@@ -201,7 +201,7 @@ def update_status(user_id, user_pwd, con_info):
         print("Error: %s" % error)
         return 1
         
-    print("update copernicus_product_info status end!")
+    print("update wss_copernicus_product_info status end!")
     conn.close()
    
 
@@ -211,7 +211,7 @@ def create_download_list(con_info):
 
     conn = psycopg2.connect(host=con_info['host'], dbname=con_info['dbname'],
                             user=con_info['user'], password=con_info['password'], port=con_info['port'])
-    query = "select * from copernicus_product_info where status = 'online' order by data_take_sensing_start asc"
+    query = "select * from wss_copernicus_product_info where status = 'online' order by data_take_sensing_start asc"
     try:
         download_list_df = psql.read_sql(query, conn)
     except (Exception, psycopg2.DatabaseError) as error:
@@ -257,7 +257,7 @@ def execute_values(df, con_info, table):
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
 
-    pg_con_info = {'host': '192.168.123.132', 'dbname': 'satellite',
+    pg_con_info = {'host': '192.168.123.132', 'dbname': 'water',
                    'user': 'postgres', 'password': 'pispdb2021', 'port': 5432}
     
     sentinel_query_info = {'geojson': 'korea_map.geojson', 'start_date': '20151225',

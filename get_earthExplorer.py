@@ -88,7 +88,7 @@ def explorer_info(user_id, user_pwd, rpa_info):
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
 
-    pg_con_info = {'host': '192.168.123.132', 'dbname': 'satellite',
+    pg_con_info = {'host': '192.168.123.132', 'dbname': 'water',
                    'user': 'postgres', 'password': 'pispdb2021', 'port': 5432}
     
     # area tab { tabPolygon, tabCircle, tabPredefinedArea}
