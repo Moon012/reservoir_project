@@ -133,7 +133,7 @@ def news_regex_main():
         stop_words_cur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'ndls_wrd');
         reg_ex_list = []
         stop_words = []
-        keywrod_obj = dict()
+        keywordObj = dict()
         record = 0
         global page, limit, userId
             
@@ -141,8 +141,8 @@ def news_regex_main():
             raise Exception("설정 오류")
         
         for keywordObj in keyword_cur:
-            keywrod_obj[keywordObj.code_dc] = keywordObj.code_no
-            keyword = keywordObj.code_dc
+            keywordObj[keywrod_obj.code_dc] = keywrod_obj.code_no
+            keyword = keywrod_obj.code_dc
             reg_ex_list.append(keyword)
       
         for wordObj in stop_words_cur:
