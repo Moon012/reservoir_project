@@ -54,7 +54,7 @@ def close_session(session):
             session.close()
             
 # 형태소 분석기를 통한 명사를 json 채로 저장
-def insert_db_nouns(obj, session):
+def insertDbNouns(obj, session):
     try :
         news_id = obj["news_sn"]
         register_id = obj["register_id"]
@@ -176,7 +176,7 @@ def main():
                 newsVo["register_id"] = user_id
                 newsVo["updusr_id"] = user_id
                 
-                success = insert_db_nouns(newsVo, session)
+                success = insertDbNouns(newsVo, session)
 
                 #기사에 언급된 명사 중 등록된 명사만 개수 추출                
                 if success != True:

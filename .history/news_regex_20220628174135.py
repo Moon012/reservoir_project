@@ -44,7 +44,7 @@ def get_session():
         logger.error(e)
 
 # session 종료
-def close_session(session):
+def closeSession(session):
     try:
         session.close()
     except Exception as e: 
@@ -54,9 +54,9 @@ def close_session(session):
             session.close()
             
 # 형태소 분석기를 통한 명사를 json 채로 저장
-def insert_db_nouns(obj, session):
+def insertDbNouns(obj, session):
     try :
-        news_id = obj["news_sn"]
+        newsid = obj["news_sn"]
         register_id = obj["register_id"]
         updusr_id = obj["updusr_id"]
         nouns_obj = obj["newsNounsCntObj"]
@@ -65,14 +65,14 @@ def insert_db_nouns(obj, session):
         
         # 형태소가 분석된 jsonb의 데이터를 입력
         t_obj = dict()
-        t_obj['news_sn'] = news_id
+        t_obj['news_sn'] = newsid
         t_obj['news_noun'] = str_nouns_obj
         
         session.query(NewsColctVo).filter(NewsColctVo.news_sn == t_obj['news_sn']).update(t_obj)
         
         for key, value in nouns_obj.items():
             t_nouns_obj = dict()
-            t_nouns_obj['news_sn'] = news_id
+            t_nouns_obj['news_sn'] = newsid
             t_nouns_obj['register_id'] = register_id
             t_nouns_obj['updusr_id'] = updusr_id
             t_nouns_obj['news_nouns'] = key
@@ -87,12 +87,14 @@ def insert_db_nouns(obj, session):
         # session.rollback();
         return False
     # finally:    
-    #     close_session(session)
+    #     closeSession(session)
     
 # 제외 단어를 포함 json으로
-def insert_stop_word(obj, session):
+def insert_stop_words(obj, session):
+    logger.info("--------------- start insert_stop_words ------------------------")
+    
     try :
-        news_id = obj["news_sn"]
+        newsid = obj["news_sn"]
         register_id = obj["register_id"]
         updusr_id = obj["updusr_id"]
         ndls_wrd = obj["ndls_wrd"]
@@ -101,7 +103,7 @@ def insert_stop_word(obj, session):
         
         # 형태소가 분석된 jsonb의 데이터를 입력
         t_obj = dict()
-        t_obj['news_sn'] = news_id
+        t_obj['news_sn'] = newsid
         t_obj['ndls_wrd'] = strndls_wrd
         
         session.query(NewsColctVo).filter(NewsColctVo.news_sn == t_obj['news_sn']).update(t_obj)
@@ -112,7 +114,7 @@ def insert_stop_word(obj, session):
         # session.rollback();
         return False
     # finally:    
-    #     close_session(session)
+    #     closeSession(session)
     
     
 def main():
@@ -120,79 +122,79 @@ def main():
         start = time.time()
         session = get_session()
         session.begin()
-        news_rs = session.query(NewsColctVo).where(NewsColctVo.news_noun == None, NewsColctVo.news_rgsde != None, NewsColctVo.news_bdt != None);
-        keyword_cur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'kwrd_code');
-        stop_word_cur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'ndls_wrd');
-        regex_list = []
-        stop_word_list = []
-        keyword_obj = dict()
+        newRs = session.query(NewsColctVo).where(NewsColctVo.news_noun == None, NewsColctVo.news_rgsde != None, NewsColctVo.news_bdt != None);
+        keywordCur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'kwrd_code');
+        stop_words_cur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'ndls_wrd');
+        regExList = []
+        stop_words = []
+        keywordObj = dict()
         record = 0
         global page, limit, user_id
             
         if bool(limit) != True: 
             raise Exception("설정 오류")
         
-        for keyword in keyword_cur:
-            keyword_obj[keyword.code_dc] = keyword.code_no
-            keyword = keyword.code_dc
-            regex_list.append(keyword)
+        for keywrodObj in keywordCur:
+            keywordObj[keywrodObj.code_dc] = keywrodObj.code_no
+            keyword = keywrodObj.code_dc
+            regExList.append(keyword)
       
-        for word_obj in stop_word_cur:
-            stop_word_list.append(word_obj.code_dc)
+        for wordObj in stop_words_cur:
+            stop_words.append(wordObj.code_dc)
         
         # rmRegex = re.compile("\'|\"|{|}")
-        keyword_regex = re.compile("|".join(regex_list))
+        keywordRegex = re.compile("|".join(regExList))
         
-        record = news_rs.limit(limit).all();
+        record = newRs.limit(limit).all();
         while record :
             
             print("start loop")
             
             for row in record:
                 
-                news_id = row.news_sn
-                news_contests = row.news_bdt
-                news_contests = re.sub('[^a-z|0-9|ㄱ-ㅎ|가-힣|\s\n]', '', news_contests, flags=re.I|re.M)
+                newsId = row.news_sn
+                newsContents = row.news_bdt
+                newsContents = re.sub('[^a-z|0-9|ㄱ-ㅎ|가-힣|\s\n]', '', newsContents, flags=re.I|re.M)
                 
                 #기사 작성일 추출
                 if row.news_rgsde :
-                    news_post_date = row.news_rgsde
+                    newsPostDate = row.news_rgsde
                     
                 #형태소 분석
-                news_nouns = ko.nouns(news_contests)
+                newsNouns = ko.nouns(newsContents)
 
                 #형태소 분석을 통해 생성된 명사 개수 추출
-                news_nouns_cnt_obj = ct.Counter(news_nouns)
-                news_nouns_cnt_obj = dict(news_nouns_cnt_obj)
-                news_year = 0
+                newsNounsCntObj = ct.Counter(newsNouns)
+                newsNounsCntObj = dict(newsNounsCntObj)
+                newsYear = 0
                 
                 #기사 작성일로 연도 추출
-                if news_post_date.year :
-                    news_year = news_post_date.year
+                if newsPostDate.year :
+                    newsYear = newsPostDate.year
                 
                 newsVo = dict()
-                newsVo["news_sn"] =  news_id
-                newsVo["news_nouns_cnt_obj"] =  news_nouns_cnt_obj
+                newsVo["news_sn"] =  newsId
+                newsVo["newsNounsCntObj"] =  newsNounsCntObj
                 newsVo["register_id"] = user_id
                 newsVo["updusr_id"] = user_id
                 
-                success = insert_db_nouns(newsVo, session)
+                success = insertDbNouns(newsVo, session)
 
                 #기사에 언급된 명사 중 등록된 명사만 개수 추출                
                 if success != True:
                     raise Exception("명사 추출 jsonb 입력 오류")
                 
                  # 등록된 제외단어가 포함된 뉴스는 제외 
-                stop_word_list = [ x for x in news_nouns if x in stop_word_list ]
+                stop_word_list = [ x for x in newsNouns if x in stop_words ]
                 ndls_wrd = ct.Counter(stop_word_list);
                 
                 if stop_word_list :
                     stop_word_vo = dict()
-                    stop_word_vo["news_sn"] =  news_id
+                    stop_word_vo["news_sn"] =  newsId
                     stop_word_vo["ndls_wrd"] =  ndls_wrd
                     stop_word_vo["register_id"] = user_id
                     stop_word_vo["updusr_id"] = user_id
-                    success = insert_stop_word(stop_word_vo, session)
+                    success = insert_stop_words(stop_word_vo, session)
                     if success != True:
                         raise Exception("제외단어 등록 오류");
                     continue;
@@ -202,29 +204,29 @@ def main():
                     continue;
                 
                 
-                x = re.findall(keyword_regex, news_contests)
+                x = re.findall(keywordRegex, newsContents)
                 if x :
                     keywords = list(set(x))
                     for key in keywords :
                         cnt = 1
                         
                         cntVo = NewsKwrdCntVo()
-                        keyword_id = keyword_obj[key]
+                        keywordId = keywordObj[key]
                         
-                        vo1 = session.query(NewsKwrdCntVo).where(NewsKwrdCntVo.news_sn == news_id, NewsKwrdCntVo.kwrd_sn == keyword_id, NewsKwrdCntVo.kwrd_year == news_year).first()
-                        cntVo.news_sn = news_id
-                        cntVo.kwrd_year = news_year
-                        cntVo.kwrd_sn = keyword_id
+                        vo1 = session.query(NewsKwrdCntVo).where(NewsKwrdCntVo.news_sn == newsId, NewsKwrdCntVo.kwrd_sn == keywordId, NewsKwrdCntVo.kwrd_year == newsYear).first()
+                        cntVo.news_sn = newsId
+                        cntVo.kwrd_year = newsYear
+                        cntVo.kwrd_sn = keywordId
                         cntVo.kwrd_co = cnt
                         cntVo.register_id = user_id
                         cntVo.updusr_id = user_id
                         
                         session.merge(cntVo)
                         
-                        vo2 = session.query(NewsKwrdYearCntVo).where(NewsKwrdYearCntVo.kwrd_sn == keyword_id, NewsKwrdYearCntVo.news_year == news_year).first()
+                        vo2 = session.query(NewsKwrdYearCntVo).where(NewsKwrdYearCntVo.kwrd_sn == keywordId, NewsKwrdYearCntVo.news_year == newsYear).first()
                         newsKwrdYearCntVo = NewsKwrdYearCntVo()
-                        newsKwrdYearCntVo.kwrd_sn = keyword_id
-                        newsKwrdYearCntVo.news_year = news_year
+                        newsKwrdYearCntVo.kwrd_sn = keywordId
+                        newsKwrdYearCntVo.news_year = newsYear
                         newsKwrdYearCntVo.kwrd_sm_co = cnt if vo2 == None else vo2.kwrd_sm_co + cnt 
                         newsKwrdYearCntVo.register_id = user_id
                         newsKwrdYearCntVo.rgsde = 'now()'
@@ -237,7 +239,7 @@ def main():
                 
             print("end loop : ", page)
             page = page+1
-            record = news_rs.limit(limit).all();               
+            record = newRs.limit(limit).all();               
             
             
         session.close()
@@ -250,7 +252,7 @@ def main():
         session.rollback()
         logger.error(e)
     finally:
-        close_session(session)
+        closeSession(session)
 
 if __name__ == '__main__' :
     main()
