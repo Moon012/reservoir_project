@@ -26,13 +26,13 @@ logger.addHandler(stream_handler)
 
 # 설정 정보
 with open('./config/jdbc.json') as f1, open('./config/config.json') as f2:
-    jdbc_conf = json.load(f1)
+    jdbcConf = json.load(f1)
     conf = json.load(f2)
-    url = jdbc_conf['url']
-    engine = db.create_engine(**jdbc_conf)
+    url = jdbcConf['url']
+    engine = db.create_engine(**jdbcConf)
     limit = conf["limit"]
     page = conf["page"]
-    user_id = conf["user_id"]
+    userId = conf["user_id"]
 
 # mecab = Mecab("C:\\mecab\\mecab-ko-dic")
 # kkma = Kkma()
@@ -41,7 +41,7 @@ ko = Komoran()
 # okt = Okt()
 
 # session 획득
-def get_session():
+def getSession():
     try:
         Session = scoped_session(sessionmaker(autocommit=False, autoflush=True, expire_on_commit=False, bind=engine))
         session = Session()
@@ -50,7 +50,7 @@ def get_session():
         logger.error(e)
 
 # session 종료
-def close_session(session):
+def closeSession(session):
     try:
         session.close()
     except Exception as e: 
@@ -60,30 +60,30 @@ def close_session(session):
             session.close()
             
 # 형태소 분석기를 통한 명사를 json 채로 저장
-def insert_db_nouns(obj, session):
+def insertDbNouns(obj, session):
     try :
-        news_id = obj["news_sn"]
+        newsid = obj["news_sn"]
         register_id = obj["register_id"]
         updusr_id = obj["updusr_id"]
-        nouns_obj = obj["news_nouns_cnt_obj"]
-        str_nouns_obj = json.dumps(nouns_obj, ensure_ascii=False)
+        nounsObj = obj["newsNounsCntObj"]
+        strNounsObj = json.dumps(nounsObj, ensure_ascii=False)
         valuses = []
         
         # 형태소가 분석된 jsonb의 데이터를 입력
         t_obj = dict()
-        t_obj['news_sn'] = news_id
-        t_obj['news_noun'] = str_nouns_obj
+        t_obj['news_sn'] = newsid
+        t_obj['news_noun'] = strNounsObj
         
         session.query(NewsColctVo).filter(NewsColctVo.news_sn == t_obj['news_sn']).update(t_obj)
         
-        for key, value in nouns_obj.items():
-            t_nouns_obj = dict()
-            t_nouns_obj['news_sn'] = news_id
-            t_nouns_obj['register_id'] = register_id
-            t_nouns_obj['updusr_id'] = updusr_id
-            t_nouns_obj['news_nouns'] = key
-            t_nouns_obj['news_nouns_co'] = value
-            valuses.append(t_nouns_obj)
+        for key, value in nounsObj.items():
+            t_nounsObj = dict()
+            t_nounsObj['news_sn'] = newsid
+            t_nounsObj['register_id'] = register_id
+            t_nounsObj['updusr_id'] = updusr_id
+            t_nounsObj['news_nouns'] = key
+            t_nounsObj['news_nouns_co'] = value
+            valuses.append(t_nounsObj)
 
         session.bulk_insert_mappings(NewsNounsExtrcVo, valuses)
 
@@ -96,11 +96,11 @@ def insert_db_nouns(obj, session):
     #     closeSession(session)
     
 # 제외 단어를 포함 json으로
-def insert_stop_word(obj, session):
-    logger.info("--------------- start insert_stop_word ------------------------")
+def insertStopWords(obj, session):
+    logger.info("--------------- start insertStopWords ------------------------")
     
     try :
-        news_id = obj["news_sn"]
+        newsid = obj["news_sn"]
         register_id = obj["register_id"]
         updusr_id = obj["updusr_id"]
         ndls_wrd = obj["ndls_wrd"]
@@ -109,7 +109,7 @@ def insert_stop_word(obj, session):
         
         # 형태소가 분석된 jsonb의 데이터를 입력
         t_obj = dict()
-        t_obj['news_sn'] = news_id
+        t_obj['news_sn'] = newsid
         t_obj['ndls_wrd'] = strndls_wrd
         
         session.query(NewsColctVo).filter(NewsColctVo.news_sn == t_obj['news_sn']).update(t_obj)
@@ -123,33 +123,33 @@ def insert_stop_word(obj, session):
     #     closeSession(session)
     
     
-def news_regex_main():
+def main():
     try:
         start = time.time()
-        session = get_session()
+        session = getSession()
         session.begin()
         newRs = session.query(NewsColctVo).where(NewsColctVo.news_noun == None, NewsColctVo.news_rgsde != None, NewsColctVo.news_bdt != None);
-        keyword_cur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'kwrd_code');
+        keywordCur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'kwrd_code');
         stop_words_cur = session.query(CodeDtstmnVo).where(CodeDtstmnVo.code_usgstt == '1', CodeDtstmnVo.code_column_nm == 'ndls_wrd');
-        reg_ex_list = []
+        regExList = []
         stop_words = []
-        keywrod_obj = dict()
+        keywordObj = dict()
         record = 0
         global page, limit, userId
             
         if bool(limit) != True: 
             raise Exception("설정 오류")
         
-        for keywordObj in keyword_cur:
-            keywrod_obj[keywordObj.code_dc] = keywordObj.code_no
-            keyword = keywordObj.code_dc
-            reg_ex_list.append(keyword)
+        for keywrodObj in keywordCur:
+            keywordObj[keywrodObj.code_dc] = keywrodObj.code_no
+            keyword = keywrodObj.code_dc
+            regExList.append(keyword)
       
         for wordObj in stop_words_cur:
             stop_words.append(wordObj.code_dc)
         
         # rmRegex = re.compile("\'|\"|{|}")
-        keyword_regex = re.compile("|".join(reg_ex_list))
+        keywordRegex = re.compile("|".join(regExList))
         
         record = newRs.limit(limit).all();
         while record :
@@ -158,81 +158,81 @@ def news_regex_main():
             
             for row in record:
                 
-                news_id = row.news_sn
-                news_contents = row.news_bdt
-                news_contents = re.sub('[^a-z|0-9|ㄱ-ㅎ|가-힣|\s\n]', '', news_contents, flags=re.I|re.M)
+                newsId = row.news_sn
+                newsContents = row.news_bdt
+                newsContents = re.sub('[^a-z|0-9|ㄱ-ㅎ|가-힣|\s\n]', '', newsContents, flags=re.I|re.M)
                 
                 #기사 작성일 추출
                 if row.news_rgsde :
                     newsPostDate = row.news_rgsde
                     
                 #형태소 분석
-                newsNouns = ko.nouns(news_contents)
+                newsNouns = ko.nouns(newsContents)
 
                 #형태소 분석을 통해 생성된 명사 개수 추출
-                news_nouns_cnt_obj = ct.Counter(newsNouns)
-                news_nouns_cnt_obj = dict(news_nouns_cnt_obj)
-                news_year = 0
+                newsNounsCntObj = ct.Counter(newsNouns)
+                newsNounsCntObj = dict(newsNounsCntObj)
+                newsYear = 0
                 
                 #기사 작성일로 연도 추출
                 if newsPostDate.year :
-                    news_year = newsPostDate.year
+                    newsYear = newsPostDate.year
                 
                 newsVo = dict()
-                newsVo["news_sn"] =  news_id
-                newsVo["news_nouns_cnt_obj"] =  news_nouns_cnt_obj
+                newsVo["news_sn"] =  newsId
+                newsVo["newsNounsCntObj"] =  newsNounsCntObj
                 newsVo["register_id"] = userId
                 newsVo["updusr_id"] = userId
                 
-                success = insert_db_nouns(newsVo, session)
+                success = insertDbNouns(newsVo, session)
 
                 #기사에 언급된 명사 중 등록된 명사만 개수 추출                
                 if success != True:
                     raise Exception("명사 추출 jsonb 입력 오류")
                 
                  # 등록된 제외단어가 포함된 뉴스는 제외 
-                stop_word = [ x for x in newsNouns if x in stop_word ]
-                ndls_wrd = ct.Counter(stop_word);
+                stopWords = [ x for x in newsNouns if x in stop_words ]
+                ndls_wrd = ct.Counter(stopWords);
                 
-                if stop_word :
+                if stopWords :
                     stopWordVo = dict()
-                    stopWordVo["news_sn"] =  news_id
+                    stopWordVo["news_sn"] =  newsId
                     stopWordVo["ndls_wrd"] =  ndls_wrd
                     stopWordVo["register_id"] = userId
                     stopWordVo["updusr_id"] = userId
-                    success = insert_stop_word(stopWordVo, session)
+                    success = insertStopWords(stopWordVo, session)
                     if success != True:
                         raise Exception("제외단어 등록 오류");
                     continue;
                 
                 if row.news_dc_code != '0000':
-                    logger.info('제외 대상')
+                    logger.info('제외 대생')
                     continue;
                 
                 
-                x = re.findall(keyword_regex, news_contents)
+                x = re.findall(keywordRegex, newsContents)
                 if x :
                     keywords = list(set(x))
                     for key in keywords :
                         cnt = 1
                         
                         cntVo = NewsKwrdCntVo()
-                        keyword_id = keywrod_obj[key]
+                        keywordId = keywordObj[key]
                         
-                        vo1 = session.query(NewsKwrdCntVo).where(NewsKwrdCntVo.news_sn == news_id, NewsKwrdCntVo.kwrd_sn == keyword_id, NewsKwrdCntVo.kwrd_year == news_year).first()
-                        cntVo.news_sn = news_id
-                        cntVo.kwrd_year = news_year
-                        cntVo.kwrd_sn = keyword_id
+                        vo1 = session.query(NewsKwrdCntVo).where(NewsKwrdCntVo.news_sn == newsId, NewsKwrdCntVo.kwrd_sn == keywordId, NewsKwrdCntVo.kwrd_year == newsYear).first()
+                        cntVo.news_sn = newsId
+                        cntVo.kwrd_year = newsYear
+                        cntVo.kwrd_sn = keywordId
                         cntVo.kwrd_co = cnt
                         cntVo.register_id = userId
                         cntVo.updusr_id = userId
                         
                         session.merge(cntVo)
                         
-                        vo2 = session.query(NewsKwrdYearCntVo).where(NewsKwrdYearCntVo.kwrd_sn == keyword_id, NewsKwrdYearCntVo.news_year == news_year).first()
+                        vo2 = session.query(NewsKwrdYearCntVo).where(NewsKwrdYearCntVo.kwrd_sn == keywordId, NewsKwrdYearCntVo.news_year == newsYear).first()
                         newsKwrdYearCntVo = NewsKwrdYearCntVo()
-                        newsKwrdYearCntVo.kwrd_sn = keyword_id
-                        newsKwrdYearCntVo.news_year = news_year
+                        newsKwrdYearCntVo.kwrd_sn = keywordId
+                        newsKwrdYearCntVo.news_year = newsYear
                         newsKwrdYearCntVo.kwrd_sm_co = cnt if vo2 == None else vo2.kwrd_sm_co + cnt 
                         newsKwrdYearCntVo.register_id = userId
                         newsKwrdYearCntVo.rgsde = 'now()'
@@ -258,7 +258,7 @@ def news_regex_main():
         session.rollback()
         logger.error(e)
     finally:
-        close_session(session)
+        closeSession(session)
 
 if __name__ == '__main__' :
-    news_regex_main()
+    main()
