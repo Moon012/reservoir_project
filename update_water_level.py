@@ -14,12 +14,13 @@ def reservoir_level_fomatter(s):
 # 저수지
 reservoir = []
 
+
 # DB
 connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
 cursor = connection.cursor()
 
 # 저수지 Select
-sql = "SELECT fac_code FROM tb_reservoir order by fac_code"
+sql = "SELECT fac_code FROM wss_reservoir order by fac_code"
 
 cursor.execute(sql)
 result = cursor.fetchall()
@@ -54,7 +55,7 @@ for i in reservoir:
             #end = int(datetime.today().strftime("%Y%m%d")) # 오늘
             
             #마지막 측정일 산출
-            sql = "SELECT check_date FROM tb_water_level WHERE fac_code = '" + str(i) + "' ORDER BY check_date DESC limit 1"
+            sql = "SELECT check_date FROM wss_water_level WHERE fac_code = '" + str(i) + "' ORDER BY check_date DESC limit 1"
             
             cursor.execute(sql)
             result = cursor.fetchone()
@@ -67,7 +68,7 @@ for i in reservoir:
                 break
             
             # Insert 쿼리
-            sql = "INSERT INTO tb_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s)"
+            sql = "INSERT INTO wss_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s)"
             
             reservoir_level_params['date_s'] = str(start_date)
             reservoir_level_params['date_e'] = str(end_date)
