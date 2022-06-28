@@ -146,10 +146,10 @@ def get_news_list(news_keyword, sort, start_date, end_date):
         insert_column = ""+news_result[0] +"', '"+ news_result[1]+"', '"+ news_result[2]+"', '"+s_from+" 00:00:00', '" + news_result[3]
 
         #같은 url 존재 여부 확인 PK
-        exist_flag = db_connect.existsDB(schema='public', table=table_name, condition ="news_url = '"+news_result[1]+"'")[0]
+        exist_flag = db_connect.exist_db(schema='public', table=table_name, condition ="news_url = '"+news_result[1]+"'")[0]
         
         if(exist_flag == False) :
-            db_connect.insertDB(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code',data=insert_column)
+            db_connect.insert_db(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code',data=insert_column)
     print("------------------ 기사 목록 INSERT 완료 ------------------")
     update_news_content(start_date,  end_date) 
 
@@ -325,11 +325,11 @@ def update_news_content(start_date, end_date):
             else :
                 news_condition = "news_bdt = '"+ news_text_clean + "', " +"news_rgsde = "+news_rgsde+ ", news_updde = "+ news_updde +", "  +"news_wrter = '"+news_wrter+ "' , news_dc_code = '"+comment_cd+"'"
 
-            db_connect.updateDB(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
+            db_connect.update_db(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
 
         else :
             news_condition = "news_dc_code = '"+ comment_cd + "'"
-            db_connect.updateDB(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
+            db_connect.update_db(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
            
 
 def do_crawling(seach_year):
