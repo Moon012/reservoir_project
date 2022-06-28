@@ -37,7 +37,7 @@ ko = Komoran()
 # session 획득
 def get_session():
     try:
-        Session = scoped_session(sessionmaker(autocommit=False, autoflush=True, expire_on_commit=False, bind=engine))
+        Sessionㄴ = scoped_session(sessionmaker(autocommit=False, autoflush=True, expire_on_commit=False, bind=engine))
         sub_session = Session()
         return sub_session
     except Exception as e: 
