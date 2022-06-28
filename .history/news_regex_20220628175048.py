@@ -54,7 +54,7 @@ def close_session(session):
             session.close()
             
 # 형태소 분석기를 통한 명사를 json 채로 저장
-def insert_db_nouns(obj, session):
+def insertDbNouns(obj, session):
     try :
         news_id = obj["news_sn"]
         register_id = obj["register_id"]
@@ -90,7 +90,7 @@ def insert_db_nouns(obj, session):
     #     close_session(session)
     
 # 제외 단어를 포함 json으로
-def insert_stop_word(obj, session):
+def insert_stop_words(obj, session):
     try :
         news_id = obj["news_sn"]
         register_id = obj["register_id"]
@@ -162,21 +162,21 @@ def main():
                 news_nouns = ko.nouns(news_contests)
 
                 #형태소 분석을 통해 생성된 명사 개수 추출
-                news_nouns_cnt_obj = ct.Counter(news_nouns)
-                news_nouns_cnt_obj = dict(news_nouns_cnt_obj)
-                news_year = 0
+                news_nounsCntObj = ct.Counter(news_nouns)
+                news_nounsCntObj = dict(news_nounsCntObj)
+                newsYear = 0
                 
                 #기사 작성일로 연도 추출
                 if news_post_date.year :
-                    news_year = news_post_date.year
+                    newsYear = news_post_date.year
                 
                 newsVo = dict()
                 newsVo["news_sn"] =  news_id
-                newsVo["news_nouns_cnt_obj"] =  news_nouns_cnt_obj
+                newsVo["news_nounsCntObj"] =  news_nounsCntObj
                 newsVo["register_id"] = user_id
                 newsVo["updusr_id"] = user_id
                 
-                success = insert_db_nouns(newsVo, session)
+                success = insertDbNouns(newsVo, session)
 
                 #기사에 언급된 명사 중 등록된 명사만 개수 추출                
                 if success != True:
@@ -209,22 +209,22 @@ def main():
                         cnt = 1
                         
                         cntVo = NewsKwrdCntVo()
-                        keyword_id = keyword_obj[key]
+                        keywordId = keyword_obj[key]
                         
-                        vo1 = session.query(NewsKwrdCntVo).where(NewsKwrdCntVo.news_sn == news_id, NewsKwrdCntVo.kwrd_sn == keyword_id, NewsKwrdCntVo.kwrd_year == news_year).first()
+                        vo1 = session.query(NewsKwrdCntVo).where(NewsKwrdCntVo.news_sn == news_id, NewsKwrdCntVo.kwrd_sn == keywordId, NewsKwrdCntVo.kwrd_year == newsYear).first()
                         cntVo.news_sn = news_id
-                        cntVo.kwrd_year = news_year
-                        cntVo.kwrd_sn = keyword_id
+                        cntVo.kwrd_year = newsYear
+                        cntVo.kwrd_sn = keywordId
                         cntVo.kwrd_co = cnt
                         cntVo.register_id = user_id
                         cntVo.updusr_id = user_id
                         
                         session.merge(cntVo)
                         
-                        vo2 = session.query(NewsKwrdYearCntVo).where(NewsKwrdYearCntVo.kwrd_sn == keyword_id, NewsKwrdYearCntVo.news_year == news_year).first()
+                        vo2 = session.query(NewsKwrdYearCntVo).where(NewsKwrdYearCntVo.kwrd_sn == keywordId, NewsKwrdYearCntVo.news_year == newsYear).first()
                         newsKwrdYearCntVo = NewsKwrdYearCntVo()
-                        newsKwrdYearCntVo.kwrd_sn = keyword_id
-                        newsKwrdYearCntVo.news_year = news_year
+                        newsKwrdYearCntVo.kwrd_sn = keywordId
+                        newsKwrdYearCntVo.news_year = newsYear
                         newsKwrdYearCntVo.kwrd_sm_co = cnt if vo2 == None else vo2.kwrd_sm_co + cnt 
                         newsKwrdYearCntVo.register_id = user_id
                         newsKwrdYearCntVo.rgsde = 'now()'
