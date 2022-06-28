@@ -140,7 +140,6 @@ def get_news_list(news_keyword, sort, start_date, end_date):
                     news_result_arr.append([news_sj, news_url, new_source, news_cl_code])   
                 
             page += 10
-    print(" 총 조회목록 갯수 " + len(news_result_arr))
 
     for news_result in news_result_arr :     
         
@@ -152,7 +151,7 @@ def get_news_list(news_keyword, sort, start_date, end_date):
         if(exist_flag == False) :
             db_connect.insertDB(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code',data=insert_column)
     print("------------------ 기사 목록 INSERT 완료 ------------------")
-    #update_news_content(start_date,  end_date) 
+    update_news_content(start_date,  end_date) 
 
 
 #기간에 해당하는 목록 상세 내용 UPDATE
@@ -334,18 +333,9 @@ def update_news_content(start_date, end_date):
            
 
 def do_crawling(seach_year):
-
-    #info_main = input("="*50+"\n"+"입력 형식에 맞게 입력해주세요."+"\n"+" 시작하시려면 Enter를 눌러주세요."+"\n"+"="*50)
     
-    # maxpage = input("최대 크롤링할 페이지 수 입력하시오: ")  
-    # query = input("검색어 입력: ")  
-    # sort = input("뉴스 검색 방식 입력(관련도순=0  최신순=1  오래된순=2): ")    #관련도순=0  최신순=1  오래된순=2
-    # s_date = input("시작날짜 입력(2019.01.04):")  #2019.01.04
-    # e_date = input("끝날짜 입력(2019.01.05):")   #2019.01.05
-
     news_keyword = '가뭄'
     sort = '1'
-
     start_date = str(seach_year)+'.01.01' #'2019.01.01'
     end_date =  str(seach_year)+'.12.31' #'2019.12.31'
     
@@ -355,5 +345,5 @@ def do_crawling(seach_year):
     #2번 목록에 해당하는 상세내용 업데이트
     #update_news_content(start_date,  end_date)
 
-for seach_year in range(1990, 2023, 1): #1990년부터 2022년까지 1년씩 증가
+for seach_year in range(2000, 2023, 1): #1990년부터 2022년까지 1년씩 증가
     do_crawling(seach_year)

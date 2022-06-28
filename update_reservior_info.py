@@ -7,6 +7,7 @@ from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
+import WaterDatabase
 
 # API
 reservior_info_url = 'http://apis.data.go.kr/B552149/reserviorWaterLevel/reservoircode/'
@@ -21,7 +22,7 @@ reservior_info_params = {
 sido_list = ['강원도','경기도','경상남도','경상북도','광주광역시','대구광역시','대전광역시','부산광역시','서울특별시','세종특별자치시','울산광역시','인천광역시','전라남도','전라북도','제주특별자치도','충청남도','충청북도']
 
 # DB Connection
-connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
+connection = psycopg2.connect(host=WaterDatabase.water_host, dbname=WaterDatabase.water_dbname,user=WaterDatabase.water_user,password=WaterDatabase.water_password,port=WaterDatabase.water_port)
 cursor = connection.cursor()
 # Insert 쿼리
 sql = "INSERT INTO wss_asos_data(fac_code, name, location, start_year, const_year, class, division, watershed_area, flood_area, full_area, benefit_area, drought_freq, flood_freq, dam_type, dam_volume, dam_width, dam_height, total_storage, effect_storage, dead_storage, intake_type, flood_level, full_level, dead_level) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"

@@ -5,6 +5,7 @@ from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
+import WaterDatabase
 
 def reservoir_level_fomatter(s):
     if s is None:
@@ -16,7 +17,7 @@ reservoir = []
 
 
 # DB
-connection = psycopg2.connect(host='192.168.123.132', dbname='water',user='postgres',password='pispdb2021',port=5432)
+connection = psycopg2.connect(host=WaterDatabase.water_host, dbname=WaterDatabase.water_dbname,user=WaterDatabase.water_user,password=WaterDatabase.water_password,port=WaterDatabase.water_port)
 cursor = connection.cursor()
 
 # 저수지 Select

@@ -8,6 +8,7 @@ import pandas as pd
 import pandas.io.sql as psql
 import os.path
 from os import path
+import WaterDatabase
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("loggerinformation")
@@ -257,8 +258,8 @@ def execute_values(df, con_info, table):
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
 
-    pg_con_info = {'host': '192.168.123.132', 'dbname': 'water',
-                   'user': 'postgres', 'password': 'pispdb2021', 'port': 5432}
+    pg_con_info = {'host': WaterDatabase.water_host, 'dbname': WaterDatabase.water_dbname,
+                   'user': WaterDatabase.water_user, 'password': WaterDatabase.water_password, 'port': WaterDatabase.water_port}
     
     sentinel_query_info = {'geojson': 'korea_map.geojson', 'start_date': '20151225',
                            'end_date': '20160101', 'platformname': 'Sentinel-2', 'cloudcoverpercentage': [0, 30]}
