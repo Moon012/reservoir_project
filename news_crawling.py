@@ -345,5 +345,5 @@ def do_crawling(seach_year):
     #2번 목록에 해당하는 상세내용 업데이트
     #update_news_content(start_date,  end_date)
 
-for seach_year in range(2000, 2023, 1): #1990년부터 2022년까지 1년씩 증가
+for seach_year in range(1990, 2023, 1): #1990년부터 2022년까지 1년씩 증가
     do_crawling(seach_year)
