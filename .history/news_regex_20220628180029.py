@@ -115,7 +115,7 @@ def insert_stop_word(obj, session):
     #     close_session(session)
     
     
-def news_regex_main():
+def main():
     try:
         start = time.time()
         session = get_session()
