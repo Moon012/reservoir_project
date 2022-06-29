@@ -1,5 +1,5 @@
 import rpa as r
-import WaterDatabase
+import db_info
 
 def explorer_info(user_id, user_pwd, rpa_info):
     
@@ -89,8 +89,8 @@ def explorer_info(user_id, user_pwd, rpa_info):
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
 
-    pg_con_info = {'host': WaterDatabase.water_host, 'dbname': WaterDatabase.water_dbname,
-                   'user': WaterDatabase.water_user, 'password': WaterDatabase.water_password, 'port': WaterDatabase.water_port}
+    pg_con_info = {'host': db_info.water_host, 'dbname': db_info.water_dbname,
+                   'user': db_info.water_user, 'password': db_info.water_password, 'port': db_info.water_port}
     
     # area tab { tabPolygon, tabCircle, tabPredefinedArea}
     rpa_info = {'area': 'tabCircle', 'centerLat': '38', 'centerLng' : '128', 'unitType' : 'km', 'circleRadius' : '500',

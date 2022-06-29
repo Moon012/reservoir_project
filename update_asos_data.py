@@ -5,7 +5,7 @@ from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
-import WaterDatabase
+import db_info
 
 def asos_data_fomatter(s):
     if s is None:
@@ -30,7 +30,7 @@ asos_data_params = {
 observatory = []
 
 # DB Connection
-connection = psycopg2.connect(host=WaterDatabase.water_host, dbname=WaterDatabase.water_dbname,user=WaterDatabase.water_user,password=WaterDatabase.water_password,port=WaterDatabase.water_port)
+connection = psycopg2.connect(host=db_info.water_host, dbname=db_info.water_dbname,user=db_info.water_user,password=db_info.water_password,port=db_info.water_port)
 cursor = connection.cursor()
 
 # 관측소 Select
