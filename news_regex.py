@@ -59,7 +59,7 @@ def insert_db_nouns(obj, session):
         news_id = obj["news_sn"]
         register_id = obj["register_id"]
         updusr_id = obj["updusr_id"]
-        nouns_obj = obj["newsNounsCntObj"]
+        nouns_obj = obj["news_nouns_cnt_obj"]
         str_nouns_obj = json.dumps(nouns_obj, ensure_ascii=False)
         valuses = []
         

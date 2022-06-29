@@ -1,10 +1,10 @@
 import psycopg2
-import WaterDatabase
+import db_info
 
 
 class Databases():
     def __init__(self):
-        self.db = psycopg2.connect(host=WaterDatabase.water_host, dbname=WaterDatabase.water_dbname,user=WaterDatabase.water_user,password=WaterDatabase.water_password,port=WaterDatabase.water_port)
+        self.db = psycopg2.connect(host=db_info.water_host, dbname=db_info.water_dbname,user=db_info.water_user,password=db_info.water_password,port=db_info.water_port)
         self.cursor = self.db.cursor()
 
     def __del__(self):

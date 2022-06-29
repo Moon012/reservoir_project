@@ -152,6 +152,7 @@ def get_news_list(news_keyword, sort, start_date, end_date):
             db_connect.insert_db(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code',data=insert_column)
     print("------------------ 기사 목록 INSERT 완료 ------------------")
     update_news_content(start_date,  end_date) 
+    print("------------------ 기사 UPDATE 완료 ------------------")
 
 
 #기간에 해당하는 목록 상세 내용 UPDATE
@@ -159,7 +160,7 @@ def update_news_content(start_date, end_date):
 
     select_condition = "news_rgsde between  to_timestamp('" + start_date.replace(".","-")+" 00:00:00' , 'YYYY-MM-DD HH24:MI:SS') and  to_timestamp('"+ end_date.replace(".","-") +" 23:59:59', 'YYYY-MM-DD HH24:MI:SS')"
 
-    update_url_list = db_connect.readDB(schema='public',table=table_name,colum='news_sn, news_url', condition= select_condition)
+    update_url_list = db_connect.read_db(schema='public',table=table_name,colum='news_sn, news_url', condition= select_condition)
    
     now_url = ''
     
