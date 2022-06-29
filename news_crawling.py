@@ -5,7 +5,7 @@ import requests
 import re
 import requests
 from sqlalchemy import false, null
-from psql_crud import CRUD  #db 연결 관련 클래스
+from database_crud import CRUD  #db 연결 관련 클래스
 import unicodedata
 import time
 
