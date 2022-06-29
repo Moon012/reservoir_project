@@ -8,7 +8,7 @@ import pandas as pd
 import pandas.io.sql as psql
 import os.path
 from os import path
-import database_info
+import config
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("loggerinformation")
@@ -258,8 +258,8 @@ def execute_values(df, con_info, table):
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
 
-    pg_con_info = {'host': database_info.water_host, 'dbname': database_info.water_dbname,
-                   'user': database_info.water_user, 'password': database_info.water_password, 'port': database_info.water_port}
+    pg_con_info = {'host': config.db_host, 'dbname': config.db_dbname,
+                   'user': config.db_user, 'password': config.db_password, 'port': config.db_port}
     
     sentinel_query_info = {'geojson': 'korea_map.geojson', 'start_date': '20151225',
                            'end_date': '20160101', 'platformname': 'Sentinel-2', 'cloudcoverpercentage': [0, 30]}
@@ -267,8 +267,8 @@ if __name__ == "__main__":
     # create download target list
     list_df = create_download_list(pg_con_info)
     # scraping satellite file by scraping_info
-    scraping_download(list_df, "ymseo", "sseo4655", pg_con_info, True)
+    scraping_download(list_df, config.copernicus_id, config.copernicus_password, pg_con_info, True)
     # update scraping_info
-    update_status("ymseo", "sseo4655", pg_con_info)
+    update_status(config.copernicus_id, config.copernicus_password, pg_con_info)
 
     print("Satellite Dataset Scraper End!")

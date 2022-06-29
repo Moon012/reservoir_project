@@ -2,7 +2,7 @@ from database_connect import Databases
 
 class CRUD(Databases):
     def insert_db(self,schema,table,colum,data):
-        sql = " INSERT INTO {schema}.{table}({colum}) VALUES ('{data}) ;".format(schema=schema,table=table,colum=colum+", rgsde",data=data+"', now()")
+        sql = " INSERT INTO {schema}.{table}({colum}) VALUES ({data}) ;".format(schema=schema,table=table,colum=colum,data=data)
         try:
             self.cursor.execute(sql)
             self.db.commit()
@@ -11,7 +11,7 @@ class CRUD(Databases):
     
     def update_db(self,schema,table,colum,value,condition):
         sql = " UPDATE {schema}.{table} SET {condition} WHERE {colum}='{value}' ".format(schema=schema
-        , table=table , colum=colum ,value=value,condition=condition+", updde = now()" )
+        , table=table , colum=colum ,value=value,condition=condition)
         
         try :
             self.cursor.execute(sql)

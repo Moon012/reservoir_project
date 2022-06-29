@@ -5,7 +5,7 @@ from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
-import database_info
+import config
 
 def asos_data_fomatter(s):
     if s is None:
@@ -15,7 +15,7 @@ def asos_data_fomatter(s):
 # API
 asos_data_url = 'http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList'
 asos_data_params = {
-            'serviceKey' : 'gKwMHq7ihGLuc/D41kRJP5xjtNjcl/eQHsOhiaJTbXUpnATpQFaC+Nby8aYFv5No+Pme9T9zuhbGJbrS3zBWMA==',
+            'serviceKey' : config.open_api_service_key,
             'pageNo' : '1', #페이지 번호
             'numOfRows' : '365', #한 페이지 결과 수
             'dataType' : 'XML',
@@ -30,7 +30,7 @@ asos_data_params = {
 observatory = []
 
 # DB Connection
-connection = psycopg2.connect(host=database_info.water_host, dbname=database_info.water_dbname,user=database_info.water_user,password=database_info.water_password,port=database_info.water_port)
+connection = psycopg2.connect(host=config.db_host, dbname=config.db_dbname,user=config.db_user,password=config.db_password,port=config.db_port)
 cursor = connection.cursor()
 
 # 관측소 Select

@@ -21,8 +21,7 @@ summary	-----------> product_sumry
 # 개발
 변수명
 기능명
-바뀐 db명
-db접속정보를 database_info.py에서 가져와서 사용하도록
+config.py에서 가져와서 사용하도록
 
 
 [파이썬 명명규칙]

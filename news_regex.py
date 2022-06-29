@@ -15,24 +15,18 @@ import logging as logging
 import json
 import collections as ct
 import time
+import config
 
 logger = logging.getLogger()
 
 # 설정 정보
-with open('./config/jdbc.json') as f1, open('./config/config.json') as f2:
-    jdbc_conf = json.load(f1)
-    conf = json.load(f2)
-    url = jdbc_conf['url']
-    engine = db.create_engine(**jdbc_conf)
-    limit = conf["limit"]
-    page = conf["page"]
-    user_id = conf["user_id"]
+url = config.jdbc_url
+engine = db.create_engine(config.jdbc_url)
+limit = config.regex_limit
+page = config.regex_page
+user_id = config.regex_user_id
 
-# mecab = Mecab("C:\\mecab\\mecab-ko-dic")
-# kkma = Kkma()
-# ha = Hannanum()
 ko = Komoran()
-# okt = Okt()
 
 # session 획득
 def get_session():
