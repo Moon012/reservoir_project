@@ -1,4 +1,4 @@
-[변경사항]
+######[변경사항]
 # 데이터베이스 
 pisp , satellite 모두 water로 이동
 
@@ -24,7 +24,7 @@ summary	-----------> product_sumry
 config.py에서 가져와서 사용하도록
 
 
-[파이썬 명명규칙]
+######[[파이썬 명명규칙]
 
 # 함수, 변수, 속성 
     owercase_underscore 형식, 스네이크 표기법(snake_case)를 따름 
