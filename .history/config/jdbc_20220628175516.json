@@ -1,7 +1,0 @@
-{
-    "url": "postgresql://postgres:pispdb2021@192.168.123.132:5432/water",
-    "pool_size": 20, 
-    "pool_recycle": 500, 
-    "max_overflow": 20,
-    "echo": false    
-}
