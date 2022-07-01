@@ -211,9 +211,7 @@ def news_regex_main():
                         cntVo.kwrd_sn = keyword_id
                         cntVo.kwrd_co = cnt
                         cntVo.register_id = user_id
-                        cntVo.rgsde = 'now()'
                         cntVo.updusr_id = user_id
-                        cntVo.updde = 'now()'
                         
                         session.merge(cntVo)
                         
