@@ -9,6 +9,8 @@ import os
 import config
 import sqlalchemy as sa
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("loggerinformation")
@@ -112,29 +114,29 @@ def scraping_info(user_id, user_pwd, query_info, save_csv):
             print("Error : Dataframe converting to csv. In scraping_info " + e)
 
      # rename columns of dataframe
-    products_df.rename(columns={'title':'product_title', 'link':'link', 'link_alternative':'link_alternative', 'link_icon':'link_icon', \
-                                'summary':'product_sumry', 'ondemand':'ondemand', 'datatakesensingstart':'data_take_sensing_start', 'generationdate':'gnr_date', \
-                                'beginposition':'begin_position', 'endposition':'end_position', 'ingestiondate':'ingestion_date', 'orbitnumber':'orbt_num', \
-                                'relativeorbitnumber':'rel_orbt_num', 'cloudcoverpercentage':'cloud_cover__pt', 'sensoroperationalmode':'sensor_opr_mode', \
-                                'gmlfootprint':'gml_ft_prt', 'footprint':'ft_prt', 'level1cpdiidentifier':'lvl1_cpdi_idntfr', 'tileid':'tile_id', \
-                                'hv_order_tileid':'hv_order_tileid', 'format':'format', 'processingbaseline':'prcsng_baseline', 'platformname':'pltfom_nm', \
-                                'filename':'file_nm', 'instrumentname':'instrument_nm', 'instrumentshortname':'instrument_shrt_nm', 'size':'size', \
-                                's2datatakeid':'s2_data_take_id', 'producttype':'product_type', 'platformidentifier':'pltfom_idntfr', \
-                                'orbitdirection':'orbt_drc', 'platformserialidentifier':'pltfom_serial_idntfr', 'processinglevel':'processing_level', \
-                                'datastripidentifier':'datastrip_idntfr', 'granuleidentifier':'granule_idntfr', 'identifier':'idntfr', 'uuid':'uuid', \
-                                'illuminationazimuthangle':'illumination_az_angle', 'illuminationzenithangle':'illumination_zenith_angle', \
-                                'vegetationpercentage':'vegetation_pt', 'notvegetatedpercentage':'notvegetated_pt', 'waterpercentage':'water_pt', \
-                                'unclassifiedpercentage':'unclassified_pt', 'mediumprobacloudspercentage':'mediumprobaclouds_pt', \
-                                'highprobacloudspercentage':'highprobaclouds_pt', 'snowicepercentage':'snowice_pt', \
-                                'product_id':'product_id'}, inplace=True)
+    products_df.rename(columns={'title': 'product_title', 'link': 'link', 'link_alternative': 'link_alternative', 'link_icon': 'link_icon',
+                                'summary': 'product_sumry', 'ondemand': 'ondemand', 'datatakesensingstart': 'data_take_sensing_start', 'generationdate': 'gnr_date',
+                                'beginposition': 'begin_position', 'endposition': 'end_position', 'ingestiondate': 'ingestion_date', 'orbitnumber': 'orbt_num',
+                                'relativeorbitnumber': 'rel_orbt_num', 'cloudcoverpercentage': 'cloud_cover__pt', 'sensoroperationalmode': 'sensor_opr_mode',
+                                'gmlfootprint': 'gml_ft_prt', 'footprint': 'ft_prt', 'level1cpdiidentifier': 'lvl1_cpdi_idntfr', 'tileid': 'tile_id',
+                                'hv_order_tileid': 'hv_order_tileid', 'format': 'format', 'processingbaseline': 'prcsng_baseline', 'platformname': 'pltfom_nm',
+                                'filename': 'file_nm', 'instrumentname': 'instrument_nm', 'instrumentshortname': 'instrument_shrt_nm', 'size': 'size',
+                                's2datatakeid': 's2_data_take_id', 'producttype': 'product_type', 'platformidentifier': 'pltfom_idntfr',
+                                'orbitdirection': 'orbt_drc', 'platformserialidentifier': 'pltfom_serial_idntfr', 'processinglevel': 'processing_level',
+                                'datastripidentifier': 'datastrip_idntfr', 'granuleidentifier': 'granule_idntfr', 'identifier': 'idntfr', 'uuid': 'uuid',
+                                'illuminationazimuthangle': 'illumination_az_angle', 'illuminationzenithangle': 'illumination_zenith_angle',
+                                'vegetationpercentage': 'vegetation_pt', 'notvegetatedpercentage': 'notvegetated_pt', 'waterpercentage': 'water_pt',
+                                'unclassifiedpercentage': 'unclassified_pt', 'mediumprobacloudspercentage': 'mediumprobaclouds_pt',
+                                'highprobacloudspercentage': 'highprobaclouds_pt', 'snowicepercentage': 'snowice_pt',
+                                'product_id': 'product_id'}, inplace=True)
 
     # selective dataframe
     # products_df_filtered = products_df[["product_id", "title", "summary", "datatakesensingstart", "orbitnumber", "relativeorbitnumber", "orbitdirection",
-                                        # "footprint", "ingestiondate", "cloudcoverpercentage", "platformserialidentifier", "processinglevel", "producttype"]]
+    # "footprint", "ingestiondate", "cloudcoverpercentage", "platformserialidentifier", "processinglevel", "producttype"]]
 
     # rename dataframe columns
     # products_df_filtered.columns = ["product_id", "product_title", "product_sumry", "data_take_sensing_start",  "orbt_num", "rel_orbt_num", "orbt_drc",
-                                    # "ft_prt", "ingestion_date", "cloud_cover_percentage", "platform_serial_identifier", "processing_level", "product_type"]
+    # "ft_prt", "ingestion_date", "cloud_cover_percentage", "platform_serial_identifier", "processing_level", "product_type"]
 
     # add scraping time
     products_df['scraping_date'] = scraping_info_time
@@ -332,22 +334,23 @@ def execute_values(df, con_info, table):
     conn.close()
 
     print("excute insert values end!")
-    
+
 
 def df_to_sql(df, con_info, table):
-    
+
     print("excute insert values start!")
 
     try:
         # create connection to postgresql
         # engine = sa.create_engine("postgresql://scott:tiger@192.168.0.199/test")
-        engine = sa.create_engine("postgresql://" + con_info['user'] + ":" + con_info['password'] + "@" + con_info['host'] + "/" +con_info['dbname'])
+        engine = sa.create_engine(
+            "postgresql://" + con_info['user'] + ":" + con_info['password'] + "@" + con_info['host'] + "/" + con_info['dbname'])
         conn = engine.connect()
-        
+
         # run test
         df.to_sql(
             table, conn, index=False, if_exists="append", method="multi"
-        )       
+        )
     except (Exception, SQLAlchemyError) as error:
         print("Error: %s" % error)
         conn.close()
@@ -367,11 +370,11 @@ def scraping(conf, query, con_info, csv):
     info_df = scraping_info(conf.copernicus_id, conf.copernicus_password,
                             query, csv)
 
-    # Select methods for insert dataframe    
+    # Select methods for insert dataframe
     # A. inser query execute by psycopg2
     # execute_values(info_df, con_info, 'wss_copernicus_product_info')
-    
-    # B. inser query execute by sqlalchemy 
+
+    # B. inser query execute by sqlalchemy
     df_to_sql(info_df, con_info, 'wss_copernicus_product_info')
 
     print("Sentinel Info scraping End!")
@@ -397,8 +400,33 @@ def download(conf, con_info, csv):
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
 
+    # start = "2015-06-01"
+    # last = "2022-06-30"
+
+    # start_date = datetime.strptime(start, "%Y-%m-%d")
+    # last_date = datetime.strptime(last, "%Y-%m-%d")
+
+    # # loop
+    # while start_date <= last_date:
+    #     scrap_start = start_date.strftime("%Y%m%d")
+    #     print("Start Sensing date :", scrap_start)
+
+    #     # add 1 month
+    #     start_date += relativedelta(months=1)
+    #     scrap_end = start_date.strftime("%Y%m%d")
+    #     print("End Sensing date :", scrap_end)
+        
+    #     sentinel_query_info['start_date'] = scrap_start
+    #     sentinel_query_info['end_date'] = scrap_end
+        
+    #     # Insert scraping_info top DB
+    #     scraping(config, sentinel_query_info, pg_con_info, True)
+        
+    sentinel_query_info['start_date'] = '20150601'
+    sentinel_query_info['end_date'] = '20220630'
+        
     # Insert scraping_info top DB
-    scraping(config, sentinel_query_info, pg_con_info, True)
+    scraping(config, sentinel_query_info, pg_con_info, True)        
 
     # update scraping_info to DB
     # update_status(config.copernicus_id,
