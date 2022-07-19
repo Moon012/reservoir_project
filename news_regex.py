@@ -211,7 +211,8 @@ def news_regex_main():
                         cntVo.kwrd_sn = keyword_id
                         cntVo.kwrd_co = cnt
                         cntVo.register_id = user_id
-                        cntVo.rgsde = 'now()'
+                        if cntVo.rgsde == None:
+                             cntVo.rgsde = 'now()'
                         cntVo.updusr_id = user_id
                         cntVo.updde = 'now()'
                         
@@ -223,7 +224,8 @@ def news_regex_main():
                         newsKwrdYearCntVo.news_year = news_year
                         newsKwrdYearCntVo.kwrd_sm_co = cnt if vo2 == None else vo2.kwrd_sm_co + cnt 
                         newsKwrdYearCntVo.register_id = user_id
-                        newsKwrdYearCntVo.rgsde = 'now()'
+                        if newsKwrdYearCntVo.rgsde == None:
+                            newsKwrdYearCntVo.rgsde = 'now()'
                         newsKwrdYearCntVo.updusr_id = user_id
                         newsKwrdYearCntVo.updde = 'now()'
                         
