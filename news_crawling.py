@@ -236,7 +236,11 @@ def update_news_content(start_date, end_date):
         elif 'newscj' in now_url:
             
             if( soup != None and soup.text != '' ) : 
-                news_rgsde = soup.select_one('div.info-text > ul > li:nth-child(2)').text.replace(" 승인 ","")
+                news_rgsde_tag = soup.select_one('div.info-text > ul > li:nth-child(2)')
+                if news_rgsde_tag :
+                    news_rgsde = soup.select_one('div.info-text > ul > li:nth-child(2)').text.replace(" 승인 ","")
+                else:
+                    news_rgsde = 'null'
                 news_updde = 'null'
                 news_text = soup.find('div', {'itemprop' : 'articleBody'}).text
                 news_wrter = soup.select_one('div.info-text > ul > li:nth-child(1)').text.strip()
