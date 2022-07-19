@@ -41,6 +41,18 @@ config.py에서 가져와서 사용하도록
 # 한줄 최대 글자 수
     79권장, \ 줄바꿈
 
+# CopernicusHub 사용법
+
+  [scraping(설정정보, API 쿼리정보, DB연결정보, CSV 파일 저장 여부)]
+  Copernicus access hub에서 sentinel-2 위성영상의 정보를 수집하여 DB에(wss_copernicus_product_info) 저장
+
+  [update_status(ID, PWD, DB연결정보)]
+  DB에(wss_copernicus_product_info) 수집된 위성영상 정보의 상태를 확인함(Offline, online, retrieval, downloaded)
+
+  [download(설정정보, DB연결정보, CSV 파일 저장 여부)]
+  DB에(wss_copernicus_product_info) 수집된 위성영상 정보의 상태를 확인하여 online 상태인 위성영상 정보는 다운로드 하고
+  offline 상태인 위성영상은 retrieval 요청함
+
 
 
 
