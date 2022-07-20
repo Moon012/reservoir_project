@@ -17,11 +17,12 @@ logger = logging.getLogger("loggerinformation")
 
 output_dir = "Result\Sentinel"
 output_csv = "Result\CSV"
+dir = os.path.dirname(__file__)
 
 pg_con_info = {'host': config.db_host, 'dbname': config.db_dbname,
                'user': config.db_user, 'password': config.db_password, 'port': config.db_port}
 
-sentinel_query_info = {'geojson': 'korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
+sentinel_query_info = {'geojson': dir+'\\korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
                        'end_date': '20220701', 'platformname': 'Sentinel-2', 'cloudcoverpercentage': [0, 30]}
 
 
@@ -421,7 +422,7 @@ if __name__ == "__main__":
         
     #     # Insert scraping_info top DB
     #     scraping(config, sentinel_query_info, pg_con_info, True)
-        
+    
     sentinel_query_info['start_date'] = '20150601'
     sentinel_query_info['end_date'] = '20220630'
         
@@ -432,7 +433,10 @@ if __name__ == "__main__":
     # update_status(config.copernicus_id,
     #               config.copernicus_password, pg_con_info)
 
-    # download Satellite file to local
+    # # download Satellite file to local
     # download(config, pg_con_info, True)
 
     print("Satellite Dataset Scraper End!")
+    
+    # todo : 1. scraping와 update_status/download 배치를 분리
+    #        2. data_take_sensing_start의 max값을 start_date로 사용으로 변경
