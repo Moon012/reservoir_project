@@ -1,3 +1,4 @@
+from tracemalloc import start
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt, exceptions
 from datetime import datetime
 import psycopg2
@@ -397,6 +398,20 @@ def download(conf, con_info, csv):
 
     print("Sentinel File download End!")
 
+def get_start_date(con_info):
+    start_date = ""
+    start_date_df = pd.DataFrame(columns=["start_date"])
+    
+    select_query = 'select to_char(max(data_take_sensing_start), \'YYYYMMDD\') as start_date from wss_copernicus_product_info'
+    conn = psycopg2.connect(host=con_info['host'], dbname=con_info['dbname'],
+                            user=con_info['user'], password=con_info['password'], port=con_info['port'])
+    
+    start_date_df = psql.read_sql(select_query, conn)
+    for row in start_date_df.itertuples():
+        start_date = row.start_date
+        
+    return start_date
+
 
 if __name__ == "__main__":
     print("Satellite Dataset Scraper Start!")
@@ -423,8 +438,13 @@ if __name__ == "__main__":
     #     # Insert scraping_info top DB
     #     scraping(config, sentinel_query_info, pg_con_info, True)
     
-    sentinel_query_info['start_date'] = '20150601'
-    sentinel_query_info['end_date'] = '20220630'
+    start_date = get_start_date(pg_con_info)
+    if start_date is not None :
+        sentinel_query_info['start_date'] = start_date
+        
+    print(sentinel_query_info['start_date'])
+    
+    sentinel_query_info['end_date'] = datetime.now().strftime('%Y%m%d');
         
     # Insert scraping_info top DB
     scraping(config, sentinel_query_info, pg_con_info, True)        
@@ -437,6 +457,3 @@ if __name__ == "__main__":
     # download(config, pg_con_info, True)
 
     print("Satellite Dataset Scraper End!")
-    
-    # todo : 1. scraping와 update_status/download 배치를 분리
-    #        2. data_take_sensing_start의 max값을 start_date로 사용으로 변경
