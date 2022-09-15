@@ -16,14 +16,14 @@ from dateutil.relativedelta import relativedelta
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("loggerinformation")
 
-output_dir = "Result\Sentinel"
-output_csv = "Result\CSV"
+output_dir = "Result/Sentinel"
+output_csv = "Result/CSV"
 dir = os.path.dirname(__file__)
 
 pg_con_info = {'host': config.db_host, 'dbname': config.db_dbname,
                'user': config.db_user, 'password': config.db_password, 'port': config.db_port}
 
-sentinel_query_info = {'geojson': dir+'\\korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
+sentinel_query_info = {'geojson': dir+'/korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
                        'end_date': '20220701', 'platformname': 'Sentinel-2', 'cloudcoverpercentage': [0, 30]}
 
 
@@ -57,7 +57,7 @@ def scraping_info_download(user_id, user_pwd, query_info, save_csv):
     products_df.index = range(1, len(products_df) + 1)
 
     if (save_csv):
-        file_path = output_csv + '\products_downloadall\\'
+        file_path = output_csv + '/products_downloadall/'
         result_to_csv(file_path)
         filename = file_path + scraping_time.strftime('%Y%m%d_%H%M%S') + '.csv'
         try:
@@ -106,9 +106,9 @@ def scraping_info(user_id, user_pwd, query_info, save_csv):
     products_df.index = range(1, len(products_df) + 1)
 
     if (save_csv):
-        file_path = output_csv + '\products_info'
+        file_path = output_csv + '/products_info'
         result_to_csv(file_path)
-        filename = file_path + "\products_info_" + \
+        filename = file_path + "/products_info_" + \
             scraping_info_time.strftime('%Y%m%d_%H%M%S') + '_raw.csv'
         try:
             products_df.to_csv(filename, sep=',', na_rep='NaN')
@@ -150,9 +150,9 @@ def scraping_info(user_id, user_pwd, query_info, save_csv):
     products_df['update_date'] = scraping_info_time
 
     if (save_csv):
-        file_path = output_csv + '\products_info'
+        file_path = output_csv + '/products_info'
         result_to_csv(file_path)
-        filename = file_path + "\products_info_" + \
+        filename = file_path + "/products_info_" + \
             scraping_info_time.strftime('%Y%m%d_%H%M%S') + '.csv'
         try:
             products_df.to_csv(filename, sep=',', na_rep='NaN')
@@ -198,7 +198,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
                     print('LTATriggered : {row.product_id} LTATriggered')
                 else:
                     downloaded_df.loc[row.Index] = [product_info['id'], product_info['Filename'],
-                                                    product_info['file_size'], output_dir + "\\" + product_info['Filename'], download_time]
+                                                    product_info['file_size'], output_dir + "/" + product_info['Filename'], download_time]
                     # downloaded file insert to db
                     execute_values(downloaded_df, con_info,
                                    'wss_copernicus_product_file')
@@ -210,9 +210,9 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
         return 1
 
     if (save_csv):
-        file_path = output_csv + '\products_download'
+        file_path = output_csv + '/products_download'
         result_to_csv(file_path)
-        filename = file_path + "\products_download_" + \
+        filename = file_path + "/products_download_" + \
             scraping_download_time.strftime('%Y%m%d_%H%M%S') + '.csv'
         try:
             downloaded_df.to_csv(filename, sep=',', na_rep='NaN')
@@ -251,7 +251,7 @@ def update_status(user_id, user_pwd, con_info):
 
             is_online = product_info['Online']
 
-            filename = output_dir + "\\" + row.product_title + '.zip'
+            filename = output_dir + "/" + row.product_title + '.zip'
             downloaded = os.path.exists(filename)
 
             if downloaded:
