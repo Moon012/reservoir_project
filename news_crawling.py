@@ -40,21 +40,20 @@ category_dic = {'정치':'100', '경제':'101', '사회': '102', '생활/문화'
 # DB 접속
 db_connect = CRUD()
 
-# 리퀘스트
+# 크롤링 하다가 갑자기 멈췄을 때
 def get_requests_url(url) :
     try:
-        return  requests.get(url,headers=header)
+        return  requests.get(url, headers=header)
     except Exception as e:
         time.sleep(1)
         return get_requests_url(url)
 
-
 #네이버 뉴스 요약정보 수집
 def get_news_list(news_keyword, sort, start_date, end_date):
 
-    s_from = start_date.replace(".","")
-    e_to = end_date.replace(".","")
-    news_result_arr = [] #모든 기사내용 newstitles, newsurls, newsource
+    s_from = start_date.replace(".", "")
+    e_to = end_date.replace(".", "")
+    news_result_arr = []  #모든 기사내용 newstitles, newsurls, newsource
     link_text_all = []
 
     #신문사 15개 모두
@@ -125,7 +124,7 @@ def get_news_list(news_keyword, sort, start_date, end_date):
                     #일반 주소
                     atags = soup.select('.news_tit')
                     for atag in atags:
-                        title_text.append(atag.text.replace("'","''"))#제목
+                        title_text.append(atag.text.replace("'", "''")) #제목
                         link_text.append(atag['href'])   #링크주소
                         link_text_all.append(atag['href'])
                         link_category_cd.append('000') #카테고리 알수없음
@@ -346,20 +345,20 @@ def update_news_content(start_date, end_date):
             else :
                 news_condition = "news_bdt = '"+ news_text_clean + "', " +"news_rgsde = "+news_rgsde+ ", news_updde = "+ news_updde +", "  +"news_wrter = '"+news_wrter+ "' , news_dc_code = '"+comment_cd+ "', updde = now()"
 
-            db_connect.update_db(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
+            db_connect.update_db(schema='public', table=table_name, colum='news_url', value=now_url, condition=news_condition)
 
         else :
             news_condition = "news_dc_code = '"+ comment_cd + "'"
-            db_connect.update_db(schema='public',table=table_name,colum='news_url', value=now_url ,condition=news_condition)
+            db_connect.update_db(schema='public', table=table_name, colum='news_url', value=now_url, condition=news_condition)
 
 
 def do_crawling():
     news_keyword = '가뭄'
     sort = '1'
     #쌓여있는 디비의 가장 마지막 일자
-    last_insert_date = str(db_connect.read_db(schema='public',table=table_name,colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0]).replace("'","").replace("(","").replace(")","").replace(",","")
+    last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #2022.09.01
     #오늘 - 1
-    now_date = (datetime.now()- timedelta(days=1)).strftime("%Y.%m.%d")
+    now_date = (datetime.now() - timedelta(days=1)).strftime("%Y.%m.%d") #2022.09.01
 
     start_date = last_insert_date
     end_date = now_date
