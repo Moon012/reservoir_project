@@ -5,7 +5,6 @@ from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
-import config
 
 def xstr(s):
     if s is None:
@@ -106,6 +105,6 @@ for i in fac:
         connection.commit()
         break
 
-connection.close()
 cursor.close()
+connection.close()
 print("종료")
