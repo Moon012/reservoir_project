@@ -397,17 +397,22 @@ def download(conf, con_info, csv):
 
 def get_start_date(con_info):
     start_date = ""
+    product_id = ""
     start_date_df = pd.DataFrame(columns=["start_date"])
     
-    select_query = 'select to_char(max(data_take_sensing_start), \'YYYYMMDD\') as start_date from wss_copernicus_product_info'
+    select_query = 'select to_char(max(data_take_sensing_start), \'YYYYMMDD\') as start_date, max(product_id) as product_id from wss_copernicus_product_info'
     conn = psycopg2.connect(host=con_info['host'], dbname=con_info['dbname'],
                             user=con_info['user'], password=con_info['password'], port=con_info['port'])
     
     start_date_df = psql.read_sql(select_query, conn)
     for row in start_date_df.itertuples():
         start_date = row.start_date
+        product_id = row.product_id
         
-    return start_date
+    return {
+        'start_date': start_date,
+        'product_id' : product_id
+    }
 
 
 if __name__ == "__main__":
@@ -435,9 +440,9 @@ if __name__ == "__main__":
     #     # Insert scraping_info top DB
     #     scraping(config, sentinel_query_info, pg_con_info, True)
     
-    start_date = get_start_date(pg_con_info)
-    if start_date is not None :
-        sentinel_query_info['start_date'] = start_date
+    dateObj = get_start_date(pg_con_info)
+    if dateObj is not None or dateObj['start_date'] is not None :
+        sentinel_query_info['start_date'] = dateObj['start_date']
         
     print(sentinel_query_info['start_date'])
     
@@ -447,8 +452,9 @@ if __name__ == "__main__":
     scraping(config, sentinel_query_info, pg_con_info, True)        
 
     # update scraping_info to DB
-    # update_status(config.copernicus_id,
-    #               config.copernicus_password, pg_con_info)
+    if dateObj is None or dateObj['product_id'] is None : 
+        update_status(config.copernicus_id,
+                    config.copernicus_password, pg_con_info)
 
     # # download Satellite file to local
     # download(config, pg_con_info, True)
