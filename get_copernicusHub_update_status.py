@@ -16,15 +16,18 @@ from dateutil.relativedelta import relativedelta
 #logging.basicConfig(level=logging.DEBUG)
 #logger = logging.getLogger("loggerinformation")
 
-dir = os.path.dirname(os.path.abspath(__file__))
+# dir = os.path.dirname(os.path.abspath(__file__))
 
+geojsonDir = os.path.dirname(os.path.abspath(__file__))
+
+dir = "/gp_server/copernicus_hub"
 output_dir = dir+"/Result/Sentinel"
 output_csv = dir+"/Result/CSV"
 
 pg_con_info = {'host': config.db_host, 'dbname': config.db_dbname,
                'user': config.db_user, 'password': config.db_password, 'port': config.db_port}
 
-sentinel_query_info = {'geojson': dir+'/korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
+sentinel_query_info = {'geojson': geojsonDir+'/korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
                        'end_date': '20220701', 'platformname': 'Sentinel-2', 'cloudcoverpercentage': [0, 30]}
 
 
