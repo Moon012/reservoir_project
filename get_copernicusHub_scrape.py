@@ -45,7 +45,7 @@ def scraping_info(user_id, user_pwd, query_info, save_csv):
     scraping_info_time = datetime.now()
 
     # connect to the API
-    api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub')
+    api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
 
     # search by polygon, time, and Hub query keywords
     footprint = geojson_to_wkt(read_geojson(query_info['geojson']))
@@ -145,13 +145,13 @@ def update_status(user_id, user_pwd, con_info):
                             user=con_info['user'], password=con_info['password'], port=con_info['port'])
     cur = conn.cursor()
 
-    select_query = "select product_id, product_title from wss_copernicus_product_info where status != 'downloaded' order by data_take_sensing_start asc"
-    retrieval_query = "select product_id from wss_copernicus_product_info where status = 'retrieval' order by data_take_sensing_start asc"
+    select_query = "select product_id, product_title from wss_copernicus_product_info where status != 'downloaded' order by data_take_sensing_start desc"
+    retrieval_query = "select product_id from wss_copernicus_product_info where status = 'retrieval' order by data_take_sensing_start desc"
     update_query = "update wss_copernicus_product_info set status = %s, update_date = %s  where product_id = %s"
 
     try:
         # connect to the API
-        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub')
+        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
 
         update_list = psql.read_sql(select_query, conn)
         # retrieval_list = psql.read_sql(retrieval_query, conn)
