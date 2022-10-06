@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
-class CodeDtstmnVo(Base): 
+class CodeDtstmnVO(Base): 
     __tablename__ = 'wss_code_dtstmn'
     
     code_sn = Column(Integer, primary_key = True)

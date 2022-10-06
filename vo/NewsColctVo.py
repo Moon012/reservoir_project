@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, Date, TIMESTAMP, Text
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
-class NewsColctVo(Base):
+class NewsColctVO(Base):
     __tablename__ = 'wss_news_colct'
 
     news_sn = Column(Integer, primary_key = True)

@@ -43,7 +43,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
     downloaded_df = pd.DataFrame(columns=["product_id", "file_name", "file_size", "file_path", "file_download_date"])
     try:
         # connect to the API
-        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub')
+        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
 
         for row in product_df.itertuples():
             download_time = datetime.now()
@@ -98,13 +98,13 @@ def update_status(user_id, user_pwd, con_info):
                             user=con_info['user'], password=con_info['password'], port=con_info['port'])
     cur = conn.cursor()
 
-    select_query = "select product_id, product_title from wss_copernicus_product_info where status != 'downloaded' order by data_take_sensing_start asc"
-    retrieval_query = "select product_id from wss_copernicus_product_info where status = 'retrieval' order by data_take_sensing_start asc"
+    select_query = "select product_id, product_title from wss_copernicus_product_info where status != 'downloaded' order by data_take_sensing_start desc"
+    retrieval_query = "select product_id from wss_copernicus_product_info where status = 'retrieval' order by data_take_sensing_start desc"
     update_query = "update wss_copernicus_product_info set status = %s, update_date = %s  where product_id = %s"
 
     try:
         # connect to the API
-        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub')
+        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
 
         update_list = psql.read_sql(select_query, conn)
         # retrieval_list = psql.read_sql(retrieval_query, conn)
@@ -159,7 +159,7 @@ def create_download_list(con_info):
 
     conn = psycopg2.connect(host=con_info['host'], dbname=con_info['dbname'],
                             user=con_info['user'], password=con_info['password'], port=con_info['port'])
-    query = "select * from wss_copernicus_product_info where status = 'online' order by data_take_sensing_start asc"
+    query = "select * from wss_copernicus_product_info where status = 'online' order by data_take_sensing_start desc"
     try:
         download_list_df = psql.read_sql(query, conn)
         print("create download list")
