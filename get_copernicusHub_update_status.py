@@ -178,7 +178,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
         columns=["product_id", "file_name", "file_size", "file_path", "file_download_date"])
     try:
         # connect to the API
-        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', , show_progressbars=False)
+        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
 
         for row in product_df.itertuples():
             download_time = datetime.now()
