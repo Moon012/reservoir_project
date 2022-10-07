@@ -9,6 +9,8 @@ from database_crud import CRUD  #db 연결 관련 클래스
 import unicodedata
 import time
 from datetime import datetime, timedelta
+import psycopg2
+import pandas as pd
 
 #각 크롤링 결과 저장하기 위한 리스트 선언
 title_text=[]
@@ -20,6 +22,7 @@ link_category_cd=[]  # 네이버 기사 카테고리 코드
 
 #사용하고자 하는 테이블명
 table_name = 'wss_news_colct'
+kwrd_table_name = 'wss_news_colct_kwrd_info'
 
 # 모든 신문사
 press_num_list = ['1005', '1020', '1021', '1022' , '1023', '1025' , '1028', '1032', '1081', '1469' ,
@@ -49,15 +52,15 @@ def get_requests_url(url) :
         return get_requests_url(url)
 
 #네이버 뉴스 요약정보 수집
-def get_news_list(news_keyword, sort, start_date, end_date):
+def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
 
     s_from = start_date.replace(".", "")
     e_to = end_date.replace(".", "")
     news_result_arr = []  #모든 기사내용 newstitles, newsurls, newsource
     link_text_all = []
-
     #신문사 15개 모두
     for press_num in press_num_list :
+        print("신문사번호 : ", press_num)
 
         #모든 페이지
         for page in range(1,200000,10):
@@ -141,37 +144,58 @@ def get_news_list(news_keyword, sort, start_date, end_date):
                     news_result_arr.append([news_sj, news_url, new_source, news_cl_code])
 
             page += 10
+            print("page : ", page)
 
-    for news_result in news_result_arr :
+    print("------------------------------------ 기사 목록 INSERT 시작 ------------------------------------")
 
+    for i in enumerate(news_result_arr,  start = 1):
+        news_result = i[1];
         insert_column = "'"+news_result[0] +"', '"+ news_result[1]+"', '"+ news_result[2]+"', '"+s_from+" 00:00:00', '" + news_result[3] +"', now()"
+
+        #뉴스 수집 키워드 정보
+        insert_column2 = "'"+news_result[1] +"', 1, '"+ news_keyword_cd+"', 'admin', now()"
 
         #같은 url 존재 여부 확인 PK
         exist_flag = db_connect.exist_db(schema='public', table=table_name, condition ="news_url = '"+news_result[1]+"'")[0]
 
+        #크롤링 데이터에 같은 url이 없으면
         if(exist_flag == False) :
             db_connect.insert_db(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code, rgsde',data=insert_column)
-            print("------------------ 기사  INSERT 중 ------------------")
-            print(insert_column)
+            db_connect.insert_db(schema='public',table=kwrd_table_name,colum='news_url, kwrd_manage_no, kwrd_colct_code, register_id, rgsde',data=insert_column2)
+            print('INSERT 기사----------- {aa}/{bb} -- start_date: {ii}, end_date: {ff}, now_url: {ss}'.format(ii=start_date, ff=end_date, ss=news_result[1], aa=i[0], bb=len(news_result_arr)))
+
+        #크롤링 데이터에 같은 url이 있으면
+        else :
+            kwrd_exist_flag = db_connect.exist_db(schema='public', table=kwrd_table_name, condition ="news_url = '"+news_result[1]+"' AND kwrd_manage_no = 1 AND kwrd_colct_code = '"+news_keyword_cd+"'")[0]
+
+            #같은 키워드가 없으면
+            if(kwrd_exist_flag == False) :
+                db_connect.insert_db(schema='public',table=kwrd_table_name,colum='news_url, kwrd_manage_no, kwrd_colct_code, register_id, rgsde',data=insert_column2)
+                print("뉴스 URL : ", news_result[1])
+                print("같은 URL 존재 : O")
+
 
     print("------------------ 기사 목록 INSERT 완료 ------------------")
-    update_news_content(start_date,  end_date)
+    print("------------------ 기사 목록 UPDATE 시작 ------------------")
+    update_news_content(start_date,  end_date, news_keyword_cd)
     print("------------------ 기사 UPDATE 완료 ------------------")
 
 
 #기간에 해당하는 목록 상세 내용 UPDATE
-def update_news_content(start_date, end_date):
+def update_news_content(start_date, end_date, news_keyword_cd):
+    # select_condition = "news_rgsde between  to_timestamp('" + start_date.replace(".","-")+" 00:00:00' , 'YYYY-MM-DD HH24:MI:SS') and  to_timestamp('"+ end_date.replace(".","-") +" 23:59:59', 'YYYY-MM-DD HH24:MI:SS')"
+    # print("UPDATE SELECT CONDITION : ", select_condition)
+    # update_url_list = db_connect.read_db(schema='public',table=table_name,colum='news_sn, news_url', condition= select_condition)
 
-    select_condition = "news_rgsde between  to_timestamp('" + start_date.replace(".","-")+" 00:00:00' , 'YYYY-MM-DD HH24:MI:SS') and  to_timestamp('"+ end_date.replace(".","-") +" 23:59:59', 'YYYY-MM-DD HH24:MI:SS')"
-
-    update_url_list = db_connect.read_db(schema='public',table=table_name,colum='news_sn, news_url', condition= select_condition)
+    sql = "SELECT  A.news_sn, A.news_url, B.kwrd_colct_code FROM (SELECT news_sn, news_url FROM wss_news_colct WHERE news_rgsde BETWEEN  to_timestamp('" + start_date.replace(".","-")+" 00:00:00' , 'YYYY-MM-DD HH24:MI:SS') AND  to_timestamp('"+ end_date.replace(".","-") + " 23:59:59', 'YYYY-MM-DD HH24:MI:SS')) A left join wss_news_colct_kwrd_info B ON A.news_url = B.news_url WHERE B.kwrd_colct_code = '" + news_keyword_cd + "' ORDER BY B.news_url,  B.kwrd_colct_code;"
+    print(" 기사 UPDATE 할 쿼리 : ", sql)
+    update_url_list = db_connect.self_db(sql)
 
     now_url = ''
-
-    # urlAttr[0] = news_sn, urlAttr[1] = news_url
-    for url_attr in update_url_list:
-
-        now_url = str(url_attr[1])
+    for i in enumerate(update_url_list,  start = 1):
+        #url_attr = i[1][0]
+        #now_url = str(url_attr[1])
+        now_url = i[1][1]
         req = get_requests_url(now_url)
         req.encoding = 'UTF-8'
         soup = BeautifulSoup(req.text,'html.parser')
@@ -182,14 +206,18 @@ def update_news_content(start_date, end_date):
 
         #내일신문 2312
         if 'naeil.com' in now_url:
-
             news_rgsde = soup.select('div.date')
 
             if news_rgsde :
-                news_rgsde = news_rgsde[1].text.replace(" 게재","")
-                news_updde = 'null' #없음
-                news_text = soup.find('div',{'id' : 'contents'}).text
-                news_wrter = soup.find('div',{'class':'byLine'}).text.strip()
+                if (len(news_rgsde) == 1) :
+                    comment_flag = True
+                    comment_cd = '0001'
+
+                else :
+                    news_rgsde = news_rgsde[1].text.replace(" 게재","")
+                    news_updde = 'null' #없음
+                    news_text = soup.find('div',{'id' : 'contents'}).text
+                    news_wrter = soup.find('div',{'class':'byLine'}).text.strip()
 
             if not news_rgsde :
                 comment_flag = True
@@ -197,10 +225,25 @@ def update_news_content(start_date, end_date):
 
         # 매일일보 2385
         elif 'm-i.kr' in now_url:
-            news_rgsde = soup.select_one('div.info-text > ul > li:nth-child(2)').text.replace(" 승인 ","").replace(".","-")
+            news_rgsde_tag = soup.select_one('div.info-text > ul > li:nth-child(2)')
+            if news_rgsde_tag :
+                news_rgsde = news_rgsde_tag.text.replace(" 승인 ","").replace(".","-")
+            if not news_rgsde_tag :
+                news_rgsde = 'null'
+
             news_updde = 'null'
-            news_text = soup.find('div', {'itemprop' : 'articleBody'}).text
-            news_wrter = soup.select_one('div.info-text > ul > li:nth-child(1)').text.replace(" ","").replace("'","''").strip()
+
+            news_text_tag = soup.find('div', {'itemprop' : 'articleBody'})
+            if news_text_tag :
+                news_text = news_text_tag.text
+            if not news_text_tag :
+                news_text = 'null'
+
+            news_wrter_tag = soup.select_one('div.info-text > ul > li:nth-child(1)')
+            if news_wrter_tag :
+                news_wrter = news_wrter_tag.text.replace(" ","").replace("'","''").strip()
+            if not news_wrter_tag :
+                news_wrter = 'null'
 
         # 아시아투데이 2268
         elif 'asiatoday.co' in now_url:
@@ -231,10 +274,26 @@ def update_news_content(start_date, end_date):
 
         # 전국매일신문 2844
         elif 'jeonmae.co' in now_url:
-            news_rgsde = soup.select_one('div.info-text > ul > li:nth-child(2)').text.replace(" 승인 ","").replace(".","-")
+
+            news_rgsde_tag = soup.select_one('div.info-text > ul > li:nth-child(2)')
+            if news_rgsde_tag :
+                news_rgsde = news_rgsde_tag.text.replace(" 승인 ","").replace(".","-")
+            if not news_rgsde_tag :
+                news_rgsde = 'null'
+
             news_updde = 'null'
-            news_text = soup.find('div', {'itemprop' : 'articleBody'}).text
-            news_wrter = soup.select_one('div.info-text > ul > li:nth-child(1)').text.strip()
+
+            news_text_tag = soup.find('div', {'itemprop' : 'articleBody'})
+            if news_text_tag :
+                news_text = news_text_tag.text
+            if not news_text_tag :
+                news_text = 'null'
+
+            news_wrter_tag = soup.select_one('div.info-text > ul > li:nth-child(1)')
+            if news_wrter_tag :
+                news_wrter = news_wrter_tag.text.strip()
+            if not news_wrter_tag :
+                news_wrter = 'null'
 
         # 천지일보 2041
         elif 'newscj' in now_url:
@@ -242,21 +301,25 @@ def update_news_content(start_date, end_date):
             if( soup != None and soup.text != '' ) :
 
                 news_rgsde_tag = soup.select_one('div.article_date > p:nth-child(2)')
-
                 if news_rgsde_tag :
                     news_rgsde = soup.select_one('div.article_date > p:nth-child(2)').text.replace("승인 ","")
-                else:
+                if not news_rgsde_tag:
                     news_rgsde = 'null'
 
                 news_updde = 'null'
 
-                news_text = soup.select_one('#wrapper > div > div.container_wrap.article_cont_wrap > div.article_area > div.left_wrap > div').text.strip()
+                news_text_tag = soup.select_one('#wrapper > div > div.container_wrap.article_cont_wrap > div.article_area > div.left_wrap > div')
+                if news_text_tag :
+                    news_text = soup.select_one('#wrapper > div > div.container_wrap.article_cont_wrap > div.article_area > div.left_wrap > div').text.strip()
+                if not news_text_tag:
+                    news_text = 'null'
 
                 news_wrter_tag = soup.find('p',{'id' : 'writeName'})
                 if news_wrter_tag :
                     news_wrter = soup.find('p',{'id' : 'writeName'}).text
-                else:
+                if not news_wrter_tag:
                     news_wrter = ''
+
             else :
                 comment_flag = True
                 comment_cd = '0001'
@@ -269,20 +332,15 @@ def update_news_content(start_date, end_date):
             if('sports' not in now_url and 'entertain' not in now_url):
 
                 news_date_tag = soup.select('div.media_end_head_info_datestamp_bunch > span')
-
                 if news_date_tag :
-
                     if (len(news_date_tag) == 1) :
                         news_rgsde = news_date_tag[0].attrs['data-date-time']
                         news_updde = 'null'
-
-
                     if (len(news_date_tag) == 2) :
                         news_rgsde = news_date_tag[0].attrs['data-date-time'] #입력일
                         news_updde = news_date_tag[1].attrs['data-modify-date-time']  #수정일
 
                     news_text_tag = soup.find('div', {'id' : 'dic_area'})
-
                     if(news_text_tag != None) :
                         news_text = news_text_tag.text
                     else :
@@ -300,11 +358,8 @@ def update_news_content(start_date, end_date):
                     if('sid=004' in now_url or 'sid=111' in now_url or 'sid=116' in now_url or 'sid=122' in now_url or  'sid=139' in now_url or 'sid=154' in now_url):
 
                         category_tag = soup.select_one('#contents > div.media_end_categorize > a > em')
-
                         if(category_tag != None) :
-
                             news_category_text = category_tag.text
-
                             if news_category_text not in category_dic :
                                 news_cl_code = '001' #알수없음
                             else :
@@ -323,6 +378,7 @@ def update_news_content(start_date, end_date):
         else :
             comment_flag = True
             comment_cd = '0001'
+
 
         if(comment_flag == False) :
 
@@ -346,29 +402,72 @@ def update_news_content(start_date, end_date):
                 news_condition = "news_bdt = '"+ news_text_clean + "', " +"news_rgsde = "+news_rgsde+ ", news_updde = "+ news_updde +", "  +"news_wrter = '"+news_wrter+ "' , news_dc_code = '"+comment_cd+ "', updde = now()"
 
             db_connect.update_db(schema='public', table=table_name, colum='news_url', value=now_url, condition=news_condition)
+            print('UPDATE ----------- {aa}/{bb} -- start_date: {ii}, end_date: {ff}, now_url: {ss}'.format(ii=start_date, ff=end_date, ss=now_url, aa=i[0], bb=len(update_url_list)))
 
         else :
             news_condition = "news_dc_code = '"+ comment_cd + "'"
             db_connect.update_db(schema='public', table=table_name, colum='news_url', value=now_url, condition=news_condition)
+            print('UPDATE ----------- {aa}/{bb} -- start_date: {ii}, end_date: {ff}, now_url: {ss}'.format(ii=start_date, ff=end_date, ss=now_url, aa=i[0], bb=len(update_url_list)))
 
 
 def do_crawling():
-    news_keyword = '가뭄'
-    sort = '1'
-    #쌓여있는 디비의 가장 마지막 일자
-    last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #2022.09.01
-    #오늘 - 1
-    now_date = (datetime.now() - timedelta(days=1)).strftime("%Y.%m.%d") #2022.09.01
 
-    start_date = last_insert_date
-    end_date = now_date
-    print("크롤링 시작 날짜 : "+start_date)
-    print("크롤링 종료 날짜 : "+end_date)
+    news_keywords = db_connect.read_db(schema='public', table='wss_news_colct_kwrd', colum='kwrd_colct_nm, kwrd_colct_code', condition ='1=1')  # 가뭄, 폭염, 홍수
 
-    #1번 뉴스 목록 수집
-    get_news_list(news_keyword, sort, start_date, end_date)
+    for news_keyword in news_keywords:
 
-    #2번 목록에 해당하는 상세내용 업데이트
-    #update_news_content(start_date,  end_date)
+        news_keyword_cd = news_keyword[1]
+        news_keyword = news_keyword[0]
+
+        if (news_keyword == '홍수'):
+            sort = '1'
+            #쌓여있는 디비의 가장 마지막 일자
+            #last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #2022.09.01
+
+            #DB 가 비워져 있을 경우 처음부터 시작
+            #if (last_insert_date == '') :
+            #    last_insert_date = '1990.01.01'
+
+            #오늘 - 1
+            #now_date = (datetime.now() - timedelta(days=1)).strftime("%Y.%m.%d") #2022.09.01
+
+            # start_date = last_insert_date
+            # end_date = now_date
+
+            start_date = '2011.01.01'
+            end_date = '2022.08.31'
+
+            print('크롤링시작 ----------- 키워드: {ii}, 시작날짜: {ff}, 종료날짜: {ss}'.format(ii=news_keyword, ff=start_date, ss=end_date))
+
+            #기간을 년도별로 분리하여 for 문
+            tm_ms = pd.period_range(start=start_date, end=end_date, freq='Y')
+            year_list = list(tm_ms.astype(str))
+
+            for this_year in year_list :
+
+                this_year = this_year+'.01.01' #2022.01.01
+
+                #서치한 년도랑 시작년도가 다르면
+                if(this_year[:4] != start_date[:4]) :
+                    new_start_date = this_year
+
+                #서치한 년도랑 시작년도가 같으면
+                if(this_year[:4] == start_date[:4]) :
+                    new_start_date = start_date
+
+                if(end_date[:4] != start_date[:4]):
+                    new_end_date = this_year[0:4]+".12.31"
+
+                #이부분 점검
+                if(this_year[:4] == end_date[:4]):
+                    new_end_date = end_date
+
+                print('년도별로 잘라서 크롤링시작 ----------- 키워드: {ii}, 시작날짜: {ff}, 종료날짜: {ss}'.format(ii=news_keyword, ff=new_start_date, ss=new_end_date))
+
+                #1번 뉴스 목록 수집
+                get_news_list(news_keyword, sort, new_start_date, new_end_date, news_keyword_cd)
+
+                #2번 목록에 해당하는 상세내용 업데이트
+                #update_news_content(new_start_date,  new_end_date, news_keyword_cd)
 
 do_crawling()
