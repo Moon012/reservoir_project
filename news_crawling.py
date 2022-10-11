@@ -457,4 +457,5 @@ def do_crawling():
             #2번 목록에 해당하는 상세내용 업데이트
             #update_news_content(new_start_date,  new_end_date, news_keyword_cd)
 
-do_crawling()
+if __name__ == "__main__":
+    do_crawling()
