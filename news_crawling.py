@@ -20,13 +20,12 @@ date_text=[]
 contents_text=[]
 link_category_cd=[]  # 네이버 기사 카테고리 코드
 
-#사용하고자 하는 테이블명
-table_name = 'wss_news_colct'
-kwrd_table_name = 'wss_news_colct_kwrd_info'
+table_name = 'wss_news_colct' #뉴스 크롤링 테이블
+kwrd_table_name = 'wss_news_colct_kwrd_info' #뉴스 키워드 테이블
 
 # 모든 신문사
 press_num_list = ['1005', '1020', '1021', '1022' , '1023', '1025' , '1028', '1032', '1081', '1469' ,
-                  '2041', '2268' ,'2312', '2385', '2844']
+                  '2041', '2268', '2312', '2385', '2844']
 
 ## 네이버 지면
 #국민일보, 동아일보, 문화일보, 세계일보, 조선일보, 중앙일보, 한겨레, 경향신문, 서울신문, 한국일보  10개
@@ -58,12 +57,13 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
     e_to = end_date.replace(".", "")
     news_result_arr = []  #모든 기사내용 newstitles, newsurls, newsource
     link_text_all = []
+
     #신문사 15개 모두
     for press_num in press_num_list :
         print("신문사번호 : ", press_num)
 
         #모든 페이지
-        for page in range(1,200000,10):
+        for page in range(1, 200000, 10):
 
             title_text=[] #기사제목
             link_text=[] #기사 url
@@ -115,7 +115,6 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
                             link_text.append(naver_news_link)
                             link_text_all.append(naver_news_link)
 
-
                     #기사 제목 추출
                     atags = soup.select('.news_tit')
                     for atag in atags:
@@ -149,7 +148,9 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
     print("------------------------------------ 기사 목록 INSERT 시작 ------------------------------------")
 
     for i in enumerate(news_result_arr,  start = 1):
-        news_result = i[1];
+
+        news_result = i[1]
+
         insert_column = "'"+news_result[0] +"', '"+ news_result[1]+"', '"+ news_result[2]+"', '"+s_from+" 00:00:00', '" + news_result[3] +"', now()"
 
         #뉴스 수집 키워드 정보
@@ -162,7 +163,7 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
         if(exist_flag == False) :
             db_connect.insert_db(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code, rgsde',data=insert_column)
             db_connect.insert_db(schema='public',table=kwrd_table_name,colum='news_url, kwrd_manage_no, kwrd_colct_code, register_id, rgsde',data=insert_column2)
-            print('INSERT 기사----------- {aa}/{bb} -- start_date: {ii}, end_date: {ff}, now_url: {ss}'.format(ii=start_date, ff=end_date, ss=news_result[1], aa=i[0], bb=len(news_result_arr)))
+            print('INSERT 기사/키워드----------- {aa}/{bb} -- start_date: {ii}, end_date: {ff}, now_url: {ss}'.format(ii=start_date, ff=end_date, ss=news_result[1], aa=i[0], bb=len(news_result_arr)))
 
         #크롤링 데이터에 같은 url이 있으면
         else :
@@ -171,9 +172,7 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
             #같은 키워드가 없으면
             if(kwrd_exist_flag == False) :
                 db_connect.insert_db(schema='public',table=kwrd_table_name,colum='news_url, kwrd_manage_no, kwrd_colct_code, register_id, rgsde',data=insert_column2)
-                print("뉴스 URL : ", news_result[1])
-                print("같은 URL 존재 : O")
-
+                print("INSERT 키워드----------- 같은 URL 존재 : O / 뉴스 URL : ", news_result[1])
 
     print("------------------ 기사 목록 INSERT 완료 ------------------")
     print("------------------ 기사 목록 UPDATE 시작 ------------------")
@@ -183,18 +182,12 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
 
 #기간에 해당하는 목록 상세 내용 UPDATE
 def update_news_content(start_date, end_date, news_keyword_cd):
-    # select_condition = "news_rgsde between  to_timestamp('" + start_date.replace(".","-")+" 00:00:00' , 'YYYY-MM-DD HH24:MI:SS') and  to_timestamp('"+ end_date.replace(".","-") +" 23:59:59', 'YYYY-MM-DD HH24:MI:SS')"
-    # print("UPDATE SELECT CONDITION : ", select_condition)
-    # update_url_list = db_connect.read_db(schema='public',table=table_name,colum='news_sn, news_url', condition= select_condition)
-
+    # 기간에 해당하는 크롤링 정보, 키워드 코드 join해서 가져옴
     sql = "SELECT  A.news_sn, A.news_url, B.kwrd_colct_code FROM (SELECT news_sn, news_url FROM wss_news_colct WHERE news_rgsde BETWEEN  to_timestamp('" + start_date.replace(".","-")+" 00:00:00' , 'YYYY-MM-DD HH24:MI:SS') AND  to_timestamp('"+ end_date.replace(".","-") + " 23:59:59', 'YYYY-MM-DD HH24:MI:SS')) A left join wss_news_colct_kwrd_info B ON A.news_url = B.news_url WHERE B.kwrd_colct_code = '" + news_keyword_cd + "' ORDER BY B.news_url,  B.kwrd_colct_code;"
-    print(" 기사 UPDATE 할 쿼리 : ", sql)
     update_url_list = db_connect.self_db(sql)
 
     now_url = ''
     for i in enumerate(update_url_list,  start = 1):
-        #url_attr = i[1][0]
-        #now_url = str(url_attr[1])
         now_url = i[1][1]
         req = get_requests_url(now_url)
         req.encoding = 'UTF-8'
@@ -412,62 +405,56 @@ def update_news_content(start_date, end_date, news_keyword_cd):
 
 def do_crawling():
 
-    news_keywords = db_connect.read_db(schema='public', table='wss_news_colct_kwrd', colum='kwrd_colct_nm, kwrd_colct_code', condition ='1=1')  # 가뭄, 폭염, 홍수
+    # 1. 크롤링할 키워드 목록을 가져옴
+    news_keywords = db_connect.read_db(schema='public', table='wss_news_colct_kwrd', colum='kwrd_colct_nm, kwrd_colct_code', condition ='1=1')
 
     for news_keyword in news_keywords:
 
-        news_keyword_cd = news_keyword[1]
-        news_keyword = news_keyword[0]
+        news_keyword_cd = news_keyword[1] #키워드 코드
+        news_keyword = news_keyword[0] #키워드 : 가뭄, 폭염, 홍수
+        sort = '1'
 
-        if (news_keyword == '홍수'):
-            sort = '1'
-            #쌓여있는 디비의 가장 마지막 일자
-            #last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #2022.09.01
+        # 2. 키워드 기간 설정
+        last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #쌓여있는 디비의 가장 최근일자, 형태 : 2022.09.01
+        if (last_insert_date == '') : #DB 가 비워져 있을 경우 처음부터 시작
+            last_insert_date = '1990.01.01'
+        now_date = (datetime.now() - timedelta(days=1)).strftime("%Y.%m.%d") #오늘 - 1, 형태 2022.09.01
 
-            #DB 가 비워져 있을 경우 처음부터 시작
-            #if (last_insert_date == '') :
-            #    last_insert_date = '1990.01.01'
+        start_date = last_insert_date
+        end_date = now_date
 
-            #오늘 - 1
-            #now_date = (datetime.now() - timedelta(days=1)).strftime("%Y.%m.%d") #2022.09.01
+        # start_date = '1990.01.01'
+        # end_date = '2022.08.31'
 
-            # start_date = last_insert_date
-            # end_date = now_date
+        print('크롤링시작 ----------- 키워드: {ii}, 시작날짜: {ff}, 종료날짜: {ss}'.format(ii=news_keyword, ff=start_date, ss=end_date))
 
-            start_date = '2011.01.01'
-            end_date = '2022.08.31'
+        # 3. 총기간을 년도별로 잘라서 크롤링 실행
+        tm_ms = pd.period_range(start=start_date, end=end_date, freq='Y')
+        year_list = list(tm_ms.astype(str))
 
-            print('크롤링시작 ----------- 키워드: {ii}, 시작날짜: {ff}, 종료날짜: {ss}'.format(ii=news_keyword, ff=start_date, ss=end_date))
+        for this_year in year_list :
 
-            #기간을 년도별로 분리하여 for 문
-            tm_ms = pd.period_range(start=start_date, end=end_date, freq='Y')
-            year_list = list(tm_ms.astype(str))
+            this_year = this_year+'.01.01' #2022.01.01
 
-            for this_year in year_list :
+            #서치한 년도랑 시작년도가 다르면
+            if(this_year[:4] != start_date[:4]) :
+                new_start_date = this_year
+            #서치한 년도랑 시작년도가 같으면
+            if(this_year[:4] == start_date[:4]) :
+                new_start_date = start_date
+            #서치한 년도랑 종료년도가 다르면 말일까지
+            if(end_date[:4] != start_date[:4]):
+                new_end_date = this_year[0:4]+".12.31"
+            #서치한 년도랑 종료년도가 같으면 end_date 까지
+            if(this_year[:4] == end_date[:4]):
+                new_end_date = end_date
 
-                this_year = this_year+'.01.01' #2022.01.01
+            print('년도별로 잘라서 크롤링시작 ----------- 키워드: {ii}, 시작날짜: {ff}, 종료날짜: {ss}'.format(ii=news_keyword, ff=new_start_date, ss=new_end_date))
 
-                #서치한 년도랑 시작년도가 다르면
-                if(this_year[:4] != start_date[:4]) :
-                    new_start_date = this_year
+            #1번 뉴스 목록 수집
+            get_news_list(news_keyword, sort, new_start_date, new_end_date, news_keyword_cd)
 
-                #서치한 년도랑 시작년도가 같으면
-                if(this_year[:4] == start_date[:4]) :
-                    new_start_date = start_date
-
-                if(end_date[:4] != start_date[:4]):
-                    new_end_date = this_year[0:4]+".12.31"
-
-                #이부분 점검
-                if(this_year[:4] == end_date[:4]):
-                    new_end_date = end_date
-
-                print('년도별로 잘라서 크롤링시작 ----------- 키워드: {ii}, 시작날짜: {ff}, 종료날짜: {ss}'.format(ii=news_keyword, ff=new_start_date, ss=new_end_date))
-
-                #1번 뉴스 목록 수집
-                get_news_list(news_keyword, sort, new_start_date, new_end_date, news_keyword_cd)
-
-                #2번 목록에 해당하는 상세내용 업데이트
-                #update_news_content(new_start_date,  new_end_date, news_keyword_cd)
+            #2번 목록에 해당하는 상세내용 업데이트
+            #update_news_content(new_start_date,  new_end_date, news_keyword_cd)
 
 do_crawling()
