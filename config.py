@@ -1,8 +1,8 @@
 #postgresql 접속정보
-db_host = '192.168.123.140'
+db_host = '192.168.123.132'
 db_dbname = 'water'
-db_user = 'water'
-db_password = '1q2w3e4r%^'
+db_user = 'postgres'
+db_password = 'pispdb2021'
 db_port = 5432
 
 #형태소 분석 관련 변수

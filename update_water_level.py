@@ -110,6 +110,6 @@ for i in reservoir:
             print("Retry")
             continue
 
-connection.close()
 cursor.close()
+connection.close()
 print("종료")

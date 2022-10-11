@@ -1,1 +1,16 @@
 Result
+vo/__pycache__/CodeDtstmnVO.cpython-36.pyc
+vo/__pycache__/NewsColctVO.cpython-36.pyc
+vo/__pycache__/NewsKwrdCntVo.cpython-36.pyc
+vo/__pycache__/NewsNounsExtrcVo.cpython-36.pyc
+vo/__pycache__/WssNewsAnalsKwrd.cpython-36.pyc
+vo/__pycache__/WssNewsAnalsKwrdVO.cpython-36.pyc
+vo/__pycache__/WssNewsColctKwrd.cpython-36.pyc
+vo/__pycache__/WssNewsColctKwrdInfo.cpython-36.pyc
+vo/__pycache__/WssNewsColctKwrdInfoVO.cpython-36.pyc
+vo/__pycache__/WssNewsColctKwrdVO.cpython-36.pyc
+vo/__pycache__/WssNewsKwrdDalyCnt.cpython-36.pyc
+vo/__pycache__/WssNewsKwrdDalyCntVO.cpython-36.pyc
+vo/__pycache__/WssNewsKwrdManageVO.cpython-36.pyc
+__pycache__/config.cpython-36.pyc
+.gitignore
