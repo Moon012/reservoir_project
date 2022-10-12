@@ -6,6 +6,7 @@ class CRUD(Databases):
         try:
             self.cursor.execute(sql)
             self.db.commit()
+            #print('insert_db : ', data)
         except Exception as e :
             print(" INSERT DB err",e)
     
@@ -16,6 +17,7 @@ class CRUD(Databases):
         try :
             self.cursor.execute(sql)
             self.db.commit()
+            #print('update_db : ', condition)
         except Exception as e :
             print(" update DB err",e)
         
@@ -46,4 +48,14 @@ class CRUD(Databases):
             result = self.cursor.fetchone()
         except Exception as e:
            result = (" SELECT EXISTS DB err",e)
+        return result
+
+    def self_db(self, self_sql):
+        sql = self_sql
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+        except Exception as e :
+            result = (" SELECT DB err",e)
+
         return result
