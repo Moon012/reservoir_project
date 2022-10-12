@@ -20,7 +20,7 @@ from dateutil.relativedelta import relativedelta
 
 geojsonDir = os.path.dirname(os.path.abspath(__file__))
 
-dir = "/gp_server/copernicus_hub"
+dir = "/home/geopeople/copernicus_hub"
 output_dir = dir+"/Result/Sentinel"
 output_csv = dir+"/Result/CSV"
 

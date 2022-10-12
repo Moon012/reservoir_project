@@ -16,7 +16,7 @@ from dateutil.relativedelta import relativedelta
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("loggerinformation")
 
-output_dir = "Result/Sentinel"
+dir = "/home/geopeople/copernicus_hub"
 output_csv = "Result/CSV"
 dir = os.path.dirname(__file__)
 
@@ -198,7 +198,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
                     print('LTATriggered : {row.product_id} LTATriggered')
                 else:
                     downloaded_df.loc[row.Index] = [product_info['id'], product_info['Filename'],
-                                                    product_info['file_size'], output_dir + "/" + product_info['Filename'], download_time]
+                                                    product_info['size'], output_dir + "/" + product_info['Filename'], download_time]
                     # downloaded file insert to db
                     execute_values(downloaded_df, con_info,
                                    'wss_copernicus_product_file')

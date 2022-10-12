@@ -91,9 +91,9 @@ for i in reservoir:
                     break
                 elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '22':
                     # 서비스 요청제한 횟수 초과시 중지
-                    print(soup.find('returnAuthMsg').string)
                     connection.close()
                     cursor.close()
+                    raise soup.find('returnAuthMsg').string
                     sys.exit()
                 else:
                     # 기타 오류
@@ -104,11 +104,7 @@ for i in reservoir:
                 # Http 접속 오류
                 raise Exception('HTTP CONNECTION ERROR')
         except Exception as e:
-            print(e)
-            print("SLEEP 10sec...")
-            sleep(10)
-            print("Retry")
-            continue
+            raise e
 
 cursor.close()
 connection.close()

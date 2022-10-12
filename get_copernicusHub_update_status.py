@@ -20,7 +20,7 @@ from dateutil.relativedelta import relativedelta
 
 geojsonDir = os.path.dirname(os.path.abspath(__file__))
 
-dir = "/gp_server/copernicus_hub"
+dir = "/home/geopeople/copernicus_hub"
 output_dir = dir+"/Result/Sentinel"
 output_csv = dir+"/Result/CSV"
 
@@ -201,7 +201,7 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
                     print('LTATriggered : {row.product_id} LTATriggered')
                 else:
                     downloaded_df.loc[row.Index] = [product_info['id'], product_info['Filename'],
-                                                    product_info['file_size'], output_dir + "/" + product_info['Filename'], download_time]
+                                                    product_info['size'], output_dir + "/" + product_info['Filename'], download_time]
                     # downloaded file insert to db
                     execute_values(downloaded_df, con_info,
                                    'wss_copernicus_product_file')

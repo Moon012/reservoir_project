@@ -18,7 +18,7 @@ from dateutil.relativedelta import relativedelta
 
 geojsonDir = os.path.dirname(os.path.abspath(__file__))
 
-dir = "/gp_server/copernicus_hub"
+dir = "/home/geopeople/copernicus_hub"
 output_dir = dir+"/Result/Sentinel"
 output_csv = dir+"/Result/CSV"
 
@@ -49,7 +49,6 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
             download_time = datetime.now()
 
             product_info = api.get_product_odata(row.product_id, full=True)
-            print(f"{row.product_id} : get odata.")
 
             is_online = product_info['Online']
 
@@ -66,15 +65,14 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
                     print('LTATriggered : {row.product_id} LTATriggered')
                 else:
                     downloaded_df.loc[row.Index] = [product_info['id'], product_info['Filename'],
-                                                    product_info['file_size'], output_dir + "/" + product_info['Filename'], download_time]
+                                                    product_info['size'], output_dir + "/" + product_info['Filename'], download_time]
                     # downloaded file insert to db
                     execute_values(downloaded_df, con_info, 'wss_copernicus_product_file')
             else:
                 print(f'Product {row.product_id} is not online.')
 
     except (Exception) as error:
-        print("Error: %s" % error)
-        return 1
+        raise ("Error: %s" % error)
 
     if (save_csv):
         file_path = output_csv + '/products_download'
@@ -223,7 +221,7 @@ def download(conf, con_info, csv):
     scraping_download(list_df, conf.copernicus_id, conf.copernicus_password, con_info, csv)
 
     # update scraping_info
-    update_status(conf.copernicus_id, conf.copernicus_password, con_info)
+    # update_status(conf.copernicus_id, conf.copernicus_password, con_info)
 
     print("Sentinel File download End!")
 

@@ -11,8 +11,7 @@ from vo.WssNewsKwrdDalyCntVO import WssNewsKwrdDalyCntVO
 from vo.WssNewsKwrdManageVO import WssNewsKwrdManageVO
 from vo.WssNewsColctKwrdInfoVO import WssNewsColctKwrdInfoVO
 from vo.WssNewsColctKwrdVO import WssNewsColctKwrdVO
-from vo.WssNewsAnalsKwrdVO import WssNewsAnals
-KwrdVO
+from vo.WssNewsAnalsKwrdVO import WssNewsAnalsKwrdVO
 import sqlalchemy as db
 import logging as logging
 import json
