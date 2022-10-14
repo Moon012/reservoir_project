@@ -49,62 +49,61 @@ for i in reservoir:
     count = count + 1
     reservoir_level_params['fac_code'] = i
     
-    while True:
-        try:
-            start_date = int(str(datetime.today().year) + "0101")
-            end_date = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
-            #end = int(datetime.today().strftime("%Y%m%d")) # 오늘
+    try:
+        start_date = int(str(datetime.today().year) + "0101")
+        end_date = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
+        
+        #마지막 측정일 산출
+        sql = "SELECT check_date FROM wss_water_level WHERE fac_code = '" + str(i) + "' ORDER BY check_date DESC limit 1"
+        
+        cursor.execute(sql)
+        result = cursor.fetchone()
+        
+        if result is not None:
+            start_date = datetime.strptime(str(result[0]), "%Y%m%d") + timedelta(days=1) # 마지막날짜에 다음날
+            start_date = int(start_date.strftime("%Y%m%d"))
             
-            #마지막 측정일 산출
-            sql = "SELECT check_date FROM wss_water_level WHERE fac_code = '" + str(i) + "' ORDER BY check_date DESC limit 1"
-            
-            cursor.execute(sql)
-            result = cursor.fetchone()
-            
-            if result is not None:
-                start_date = datetime.strptime(str(result[0]), "%Y%m%d") + timedelta(days=1) # 마지막날짜에 다음날
-                start_date = int(start_date.strftime("%Y%m%d"))
-                
-            if start_date > end_date:
-                break
-            
-            # Insert 쿼리
-            sql = "INSERT INTO wss_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s)"
-            
-            reservoir_level_params['date_s'] = str(start_date)
-            reservoir_level_params['date_e'] = str(end_date)
-            
-            print(str(count) + " : " + reservoir_level_params['fac_code'] + " - " + reservoir_level_params['date_s'] + " ~ " + reservoir_level_params['date_e'])
-            response = requests.get(reservoir_level_url, params=reservoir_level_params)
-            
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'lxml-xml')
-            
-                if soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '00':
-                    for item in soup.find_all('item'):
+        if start_date > end_date:
+            continue
+        
+        # Insert 쿼리
+        sql = "INSERT INTO wss_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT pk_wss_water_level DO NOTHING "
+        
+        reservoir_level_params['date_s'] = str(start_date)
+        reservoir_level_params['date_e'] = str(end_date)
+        
+        print(str(count) + " : " + reservoir_level_params['fac_code'] + " - " + reservoir_level_params['date_s'] + " ~ " + reservoir_level_params['date_e'])
+        response = requests.get(reservoir_level_url, params=reservoir_level_params)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'lxml-xml')
+        
+            if soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '00':
+                for item in soup.find_all('item'):
+                    try :
                         cursor.execute(sql, (item.fac_code.string, item.check_date.string, reservoir_level_fomatter(item.water_level), reservoir_level_fomatter(item.rate)))
-                    
-                    connection.commit()
-                    break
-                elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '99':
-                    print("데이터 없음")
-                    break
-                elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '22':
-                    # 서비스 요청제한 횟수 초과시 중지
-                    connection.close()
-                    cursor.close()
-                    raise soup.find('returnAuthMsg').string
-                    sys.exit()
-                else:
-                    # 기타 오류
-                    print(soup.find('returnAuthMsg').string)
-                    break
-                    #raise Exception('XML PARSE ERROR')
+                    except Exception as e :
+                        print (e)
+                        continue
+                
+                connection.commit()
+            elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '99':
+                print("No Data")
+                
+            elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '22':
+                # 서비스 요청제한 횟수 초과시 중지
+                raise Exception(soup.find('returnAuthMsg').string)
             else:
-                # Http 접속 오류
-                raise Exception('HTTP CONNECTION ERROR')
-        except Exception as e:
-            raise e
+                # 기타 오류
+                raise Exception(soup.find('returnAuthMsg').string)
+        else:
+            # Http 접속 오류
+            raise Exception('HTTP CONNECTION ERROR')
+        
+    except Exception as e:
+        cursor.close()
+        connection.close()
+        raise e
 
 cursor.close()
 connection.close()

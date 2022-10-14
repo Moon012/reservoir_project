@@ -41,9 +41,16 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
     scraping_download_time = datetime.now()
 
     downloaded_df = pd.DataFrame(columns=["product_id", "file_name", "file_size", "file_path", "file_download_date"])
+    
+    update_query = "update wss_copernicus_product_info set status = %s, update_date = %s  where product_id = %s"
+    
+    conn = psycopg2.connect(host=con_info['host'], dbname=con_info['dbname'],
+                            user=con_info['user'], password=con_info['password'], port=con_info['port'])
+    cur = conn.cursor()
+    
     try:
         # connect to the API
-        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
+        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=True)
 
         for row in product_df.itertuples():
             download_time = datetime.now()
@@ -68,6 +75,10 @@ def scraping_download(product_df, user_id, user_pwd, con_info, save_csv):
                                                     product_info['size'], output_dir + "/" + product_info['Filename'], download_time]
                     # downloaded file insert to db
                     execute_values(downloaded_df, con_info, 'wss_copernicus_product_file')
+                    status_update_time = datetime.now()
+                    cur.execute(update_query, ('downloaded', status_update_time, row.product_id))
+                    conn.commit()
+                    
             else:
                 print(f'Product {row.product_id} is not online.')
 
@@ -102,7 +113,7 @@ def update_status(user_id, user_pwd, con_info):
 
     try:
         # connect to the API
-        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=False)
+        api = SentinelAPI(user_id, user_pwd, 'https://apihub.copernicus.eu/apihub', show_progressbars=True)
 
         update_list = psql.read_sql(select_query, conn)
         # retrieval_list = psql.read_sql(retrieval_query, conn)

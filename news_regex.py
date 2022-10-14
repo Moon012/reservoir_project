@@ -1,6 +1,7 @@
-from imp import reload
 import re
 from konlpy.tag import Mecab, Kkma, Okt, Hannanum, Komoran
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import insert
 from vo.NewsKwrdCntVo import NewsKwrdCntVo
@@ -67,15 +68,22 @@ def insert_db_nouns(obj, session):
         session.query(NewsColctVO).filter(NewsColctVO.news_url == t_obj['news_url']).update(t_obj)
         
         for key, value in nouns_obj.items():
-            t_nouns_obj = dict()
-            t_nouns_obj['news_url'] = news_url
-            t_nouns_obj['register_id'] = register_id
-            t_nouns_obj['updusr_id'] = updusr_id
-            t_nouns_obj['news_nouns'] = key
-            t_nouns_obj['news_nouns_co'] = value
-            valuses.append(t_nouns_obj)
-
-        session.bulk_insert_mappings(NewsNounsExtrcVo, valuses)
+            NewsNounsExtrcCntVo = session.query(NewsNounsExtrcVo).where(NewsNounsExtrcVo.news_url == news_url).first()
+            
+            if NewsNounsExtrcCntVo is None :
+                session.add(
+                    NewsNounsExtrcVo(
+                        news_url = news_url,
+                        news_nouns = key,
+                        news_nouns_co = value,
+                        register_id = register_id,
+                        rgsde = 'now()',
+                        updusr_id = register_id,
+                        updde = 'now()',
+                    )
+                )
+            else : 
+                pass
 
         return True
     except Exception as e:
@@ -256,10 +264,11 @@ def news_regex_main():
                             continue
                         
                         if (cnt is not None) :
+                            
                             session.add(
                                 NewsKwrdCntVo(
-                                    news_url = news_url,
-                                    kwrd_manage_no = manage_vo.kwrd_manage_no,
+                                    news_url        = news_url,
+                                    kwrd_manage_no  = manage_vo.kwrd_manage_no,
                                     kwrd_colct_code = ivo.kwrd_colct_code,
                                     kwrd_code       = keywordObj[keyword],
                                     kwrd_co         = cnt,
