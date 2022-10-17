@@ -1,7 +1,4 @@
-import sys
 from datetime import datetime, timedelta
-from time import sleep
-from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
@@ -91,18 +88,23 @@ for i in observatory:
             elif soup.find('resultCode') is not None and soup.find('resultCode').string == '03':
                 # No Data
                 print ("No Data")
+            elif soup.find('resultCode') is not None and (soup.find('resultCode').string == '04' or soup.find('resultCode').string == '05'
+                                                         or soup.find('resultCode').string == '10' or soup.find('resultCode').string == '11') :
+                print ("pass")
                 
-            elif soup.find('resultCode') is not None and soup.find('resultCode').string == '22':
-                # 서비스 요청제한 횟수 초과시 중지
-                raise Exception(soup.find('resultMsg').string)
             else:
                 # 기타 오류
-                raise Exception(soup.find('resultMsg').string)
+                if soup.find('resultMsg') is not None and soup.find('resultMsg').string is not None :
+                    raise Exception(soup.find('resultMsg').string)
+                else :
+                    raise Exception("ERROR")
         else:
             # Http 접속 오류
             raise Exception('HTTP CONNECTION ERROR')
         
     except Exception as e:
+        print(e)
+        connection.rollback()
         cursor.close()
         connection.close()
         raise e

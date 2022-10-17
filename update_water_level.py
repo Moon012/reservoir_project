@@ -1,11 +1,12 @@
-import sys
 from datetime import datetime, timedelta
-from time import sleep
-from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
 import config
+# import logging
+
+# logging.basicConfig(level=logging.DEBUG)
+# logger = logging.getLogger("loggerinformation")
 
 def reservoir_level_fomatter(s):
     if s is None:
@@ -74,7 +75,7 @@ for i in reservoir:
         
         print(str(count) + " : " + reservoir_level_params['fac_code'] + " - " + reservoir_level_params['date_s'] + " ~ " + reservoir_level_params['date_e'])
         response = requests.get(reservoir_level_url, params=reservoir_level_params)
-        
+     
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'lxml-xml')
         
@@ -90,17 +91,41 @@ for i in reservoir:
             elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '99':
                 print("No Data")
                 
-            elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '22':
-                # 서비스 요청제한 횟수 초과시 중지
-                raise Exception(soup.find('returnAuthMsg').string)
+            elif soup.find('returnReasonCode') is not None and soup.find('returnReasonCode').string == '04':
+                print("HTTP ROUTING ERROR")
             else:
                 # 기타 오류
-                raise Exception(soup.find('returnAuthMsg').string)
+                if soup.find('returnAuthMsg') is not None and soup.find('returnAuthMsg').string is not None :
+                    raise Exception(soup.find('returnAuthMsg').string)
+                else :
+                    raise Exception("ERROR")
         else:
             # Http 접속 오류
             raise Exception('HTTP CONNECTION ERROR')
         
+    except requests.exceptions.Timeout as errd:
+        print("Timeout Error : ", errd)
+        connection.rollback()
+        continue
+    
+    except requests.exceptions.ConnectionError as errc:
+        print("Error Connecting : ", errc)
+        connection.rollback()
+        continue
+    
+    except requests.exceptions.HTTPError as errb:
+        print("Http Error : ", errb)
+        connection.rollback()
+        continue
+    
+    except requests.exceptions.RequestException as erra:
+        print("AnyException : ", erra)
+        connection.rollback()
+        continue
+    
     except Exception as e:
+        print(e)
+        connection.rollback()
         cursor.close()
         connection.close()
         raise e

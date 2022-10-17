@@ -1,7 +1,4 @@
-import sys
 from datetime import datetime, timedelta
-from time import sleep
-from xmlrpc.client import DateTime
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
@@ -71,7 +68,7 @@ for i in fac:
         
         page_no = 1
         
-        while page_no <= 4:
+        while page_no :
             try:
                 params['Page_No'] = page_no
                 
@@ -80,6 +77,7 @@ for i in fac:
                 response = requests.get(url, params=params, allow_redirects=False)
 
                 if response.status_code == 200:
+                    
                     soup = BeautifulSoup(response.text, 'lxml-xml')
                     
                     if soup.find('result_Code') is not None and soup.find('result_Code').string == '200':
@@ -87,7 +85,7 @@ for i in fac:
                             totalCount = int(soup.find('total_Count').string)
                         except Exception as e :
                             print (e)
-                        
+
                         if totalCount:
                             pass
                         else: 
@@ -108,22 +106,25 @@ for i in fac:
                         else :
                             page_no = 0
                             
+                        connection.commit()
+                            
                     elif soup.find('Result_Code').string == '201':
                         # 데이터가 특정일자부터 없는 관측소.... API 가 참 이상하다...
                         print("No Data")
                         break
                     else:
                         # 기타 오류
-                        raise Exception('XML PARSE ERROR')
+                        raise Exception('ERROR')
                 else:
                     # Http 접속 오류
                     raise Exception('HTTP CONNECTION ERROR')
                 
             except Exception as e:
                 raise e
-        
-        connection.commit()
+
     except Exception as e:
+        print (e)
+        connection.rollback()
         cursor.close()
         connection.close()                        
         raise e

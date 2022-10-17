@@ -14,3 +14,5 @@ vo/__pycache__/WssNewsKwrdDalyCntVO.cpython-36.pyc
 vo/__pycache__/WssNewsKwrdManageVO.cpython-36.pyc
 __pycache__/config.cpython-36.pyc
 .gitignore
+__pycache__/database_crud.cpython-36.pyc
+__pycache__/database_connect.cpython-36.pyc

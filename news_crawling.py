@@ -404,9 +404,10 @@ def update_news_content(start_date, end_date, news_keyword_cd):
 
 
 def do_crawling():
-
     # 1. 크롤링할 키워드 목록을 가져옴
-    news_keywords = db_connect.read_db(schema='public', table='wss_news_colct_kwrd', colum='kwrd_colct_nm, kwrd_colct_code', condition ='1=1')
+    manage_no = db_connect.select_one(schema='public', table='wss_news_kwrd_manage', colum='kwrd_manage_no', condition ='use_yn = \'Y\' and delete_yn = \'N\'')
+    news_keywords = db_connect.read_db(schema='public', table='wss_news_colct_kwrd', colum='kwrd_colct_nm, kwrd_colct_code', condition ='kwrd_manage_no=' + str(manage_no))
+    
 
     for news_keyword in news_keywords:
 
