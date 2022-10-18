@@ -6,7 +6,7 @@ class NewsKwrdCntVO(Base):
     __tablename__ = 'wss_news_kwrd_cnt'
         
     news_url = Column(String, primary_key = True)
-    kwrd_manual_no = Column(Integer)
+    kwrd_manage_no = Column(Integer)
     kwrd_colct_code = Column(String)
     kwrd_code = Column(String)
     kwrd_co = Column(String)

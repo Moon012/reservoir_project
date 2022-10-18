@@ -105,22 +105,18 @@ for i in reservoir:
         
     except requests.exceptions.Timeout as errd:
         print("Timeout Error : ", errd)
-        connection.rollback()
         continue
     
     except requests.exceptions.ConnectionError as errc:
         print("Error Connecting : ", errc)
-        connection.rollback()
         continue
     
     except requests.exceptions.HTTPError as errb:
         print("Http Error : ", errb)
-        connection.rollback()
         continue
     
     except requests.exceptions.RequestException as erra:
         print("AnyException : ", erra)
-        connection.rollback()
         continue
     
     except Exception as e:

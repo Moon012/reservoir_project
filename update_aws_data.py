@@ -121,6 +121,22 @@ for i in fac:
                 
             except Exception as e:
                 raise e
+            
+    except requests.exceptions.Timeout as errd:
+        print("Timeout Error : ", errd)
+        continue
+    
+    except requests.exceptions.ConnectionError as errc:
+        print("Error Connecting : ", errc)
+        continue
+    
+    except requests.exceptions.HTTPError as errb:
+        print("Http Error : ", errb)
+        continue
+    
+    except requests.exceptions.RequestException as erra:
+        print("AnyException : ", erra)
+        continue
 
     except Exception as e:
         print (e)

@@ -102,6 +102,22 @@ for i in observatory:
             # Http 접속 오류
             raise Exception('HTTP CONNECTION ERROR')
         
+    except requests.exceptions.Timeout as errd:
+        print("Timeout Error : ", errd)
+        continue
+    
+    except requests.exceptions.ConnectionError as errc:
+        print("Error Connecting : ", errc)
+        continue
+    
+    except requests.exceptions.HTTPError as errb:
+        print("Http Error : ", errb)
+        continue
+    
+    except requests.exceptions.RequestException as erra:
+        print("AnyException : ", erra)
+        continue
+        
     except Exception as e:
         print(e)
         connection.rollback()
