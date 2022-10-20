@@ -39,8 +39,6 @@ class CRUD(Databases):
         
         except Exception as e :
             raise (" SELECT DB err", e)
-        
-        return result
 
     def delete_db(self,table,condition,schema="public"):
         sql = " DELETE from {schema}.{table} WHERE {condition} ; ".format(schema=schema,table=table,
