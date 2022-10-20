@@ -416,7 +416,11 @@ def do_crawling():
         sort = '1'
 
         # 2. 키워드 기간 설정
-        last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #쌓여있는 디비의 가장 최근일자, 형태 : 2022.09.01
+    
+        sql = "select to_char(MAX(news_rgsde + interval '1 day'), 'YYYY.MM.DD') as last_date from wss_news_colct a, wss_news_colct_kwrd_info b where a.news_url = b.news_url and b.kwrd_colct_code = \'"+news_keyword_cd+"\';"
+        last_insert_date = db_connect.self_db(sql)[0][0]
+    
+        # last_insert_date = db_connect.read_db(schema='public', table=table_name, colum='to_char( MAX(news_rgsde + interval \'1 day\'), \'YYYY.MM.DD\') as last_date', condition ='1=1')[0][0] #쌓여있는 디비의 가장 최근일자, 형태 : 2022.09.01
         if (last_insert_date is None or last_insert_date == '' ) : #DB 가 비워져 있을 경우 처음부터 시작
             last_insert_date = '1990.01.01'
         now_date = (datetime.now() - timedelta(days=1)).strftime("%Y.%m.%d") #오늘 - 1, 형태 2022.09.01
