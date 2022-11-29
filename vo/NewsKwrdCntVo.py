@@ -14,3 +14,6 @@ class NewsKwrdCntVO(Base):
     rgsde = Column(TIMESTAMP)
     updusr_id = Column(String)
     updde = Column(TIMESTAMP)
+    news_year = Column(String)
+    news_month = Column(String)
+    news_day = Column(String)

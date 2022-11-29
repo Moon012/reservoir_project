@@ -79,11 +79,11 @@ for i in observatory:
                 for item in soup.find_all('item'):
                     try : 
                         cursor.execute(sql, (item.stnId.string, item.stnNm.string, item.tm.string, asos_data_fomatter(item.avgTa), asos_data_fomatter(item.minTa), asos_data_fomatter(item.minTaHrmt), asos_data_fomatter(item.maxTa), asos_data_fomatter(item.maxTaHrmt), asos_data_fomatter(item.mi10MaxRn), asos_data_fomatter(item.mi10MaxRnHrmt), asos_data_fomatter(item.hr1MaxRn), asos_data_fomatter(item.hr1MaxRnHrmt), asos_data_fomatter(item.sumRnDur), asos_data_fomatter(item.sumRn), asos_data_fomatter(item.maxInsWs), asos_data_fomatter(item.maxInsWsWd), asos_data_fomatter(item.maxInsWsHrmt), asos_data_fomatter(item.maxWs), asos_data_fomatter(item.maxWsWd), asos_data_fomatter(item.maxWsHrmt), asos_data_fomatter(item.avgWs), asos_data_fomatter(item.hr24SumRws), asos_data_fomatter(item.maxWd), asos_data_fomatter(item.avgTd), asos_data_fomatter(item.minRhm), asos_data_fomatter(item.minRhmHrmt), asos_data_fomatter(item.avgRhm), asos_data_fomatter(item.avgPv), asos_data_fomatter(item.avgPa), asos_data_fomatter(item.maxPs), asos_data_fomatter(item.maxPsHrmt), asos_data_fomatter(item.minPs), asos_data_fomatter(item.minPsHrmt), asos_data_fomatter(item.avgPs), asos_data_fomatter(item.ssDur), asos_data_fomatter(item.sumSsHr), asos_data_fomatter(item.hr1MaxIcsrHrmt), asos_data_fomatter(item.hr1MaxIcsr), asos_data_fomatter(item.sumGsr), asos_data_fomatter(item.ddMefs), asos_data_fomatter(item.ddMefsHrmt), asos_data_fomatter(item.ddMes), asos_data_fomatter(item.ddMesHrmt), asos_data_fomatter(item.sumDpthFhsc), asos_data_fomatter(item.avgTca), asos_data_fomatter(item.avgLmac), asos_data_fomatter(item.avgTs), asos_data_fomatter(item.minTg), asos_data_fomatter(item.avgCm5Te), asos_data_fomatter(item.avgCm10Te), asos_data_fomatter(item.avgCm20Te), asos_data_fomatter(item.avgCm30Te), asos_data_fomatter(item.avgM05Te), asos_data_fomatter(item.avgM10Te), asos_data_fomatter(item.avgM15Te), asos_data_fomatter(item.avgM30Te), asos_data_fomatter(item.avgM50Te), asos_data_fomatter(item.sumLrgEv), asos_data_fomatter(item.sumSmlEv), asos_data_fomatter(item.n99Rn), asos_data_fomatter(item.iscs), asos_data_fomatter(item.sumFogDur)))
+                        connection.commit()
                     except Exception as e:
+                        connection.rollback()
                         print (e)
                         continue
-                    
-                connection.commit()
                 
             elif soup.find('resultCode') is not None and soup.find('resultCode').string == '03':
                 # No Data
@@ -95,7 +95,13 @@ for i in observatory:
             else:
                 # 기타 오류
                 if soup.find('resultMsg') is not None and soup.find('resultMsg').string is not None :
-                    raise Exception(soup.find('resultMsg').string)
+                    try :
+                        if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
+                            pass    
+                        else : 
+                            raise Exception(soup.find('resultMsg').string)
+                    except Exception as e: 
+                        raise Exception(e)
                 else :
                     raise Exception("ERROR")
         else:
@@ -120,7 +126,6 @@ for i in observatory:
         
     except Exception as e:
         print(e)
-        connection.rollback()
         cursor.close()
         connection.close()
         raise e

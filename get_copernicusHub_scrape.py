@@ -1,3 +1,4 @@
+from sqlite3 import IntegrityError
 from tracemalloc import start
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt, exceptions
 from datetime import datetime
@@ -27,7 +28,7 @@ output_csv = dir+"/Result/CSV"
 pg_con_info = {'host': config.db_host, 'dbname': config.db_dbname,
                'user': config.db_user, 'password': config.db_password, 'port': config.db_port}
 
-sentinel_query_info = {'geojson': geojsonDir+'/korea_map.geojson', 'start_date': '20220601', 'relativeorbitnumber': [3, 10, 103, 110],
+sentinel_query_info = {'geojson': geojsonDir+'/korea_map.geojson', 'start_date': '20150601', 'relativeorbitnumber': [3, 10, 103, 110],
                        'end_date': '20220701', 'platformname': 'Sentinel-2', 'cloudcoverpercentage': [0, 30]}
 
 
@@ -211,9 +212,16 @@ def df_to_sql(df, con_info, table):
         conn = engine.connect()
 
         # run test
-        df.to_sql(
-            table, conn, index=False, if_exists="append", method="multi"
-        )
+        for i in range(len(df)):
+            try:
+                df.iloc[i:i+1].to_sql(table, conn, index=False, if_exists="append", method="multi")
+            except Exception:
+                pass
+                
+            # df.to_sql(
+            #     table, conn, index=False, if_exists="append", method="multi"
+            # )
+        
         print("the dataframe is inserted")
         print("excute insert values end!")
 
@@ -271,8 +279,8 @@ if __name__ == "__main__":
     scraping(config, sentinel_query_info, pg_con_info, True)        
 
     # update scraping_info to DB
-    if dateObj is None or dateObj['product_id'] is None : 
-        update_status(config.copernicus_id,
-                    config.copernicus_password, pg_con_info)
+    # if dateObj is None or dateObj['product_id'] is None : 
+    update_status(config.copernicus_id,
+                config.copernicus_password, pg_con_info)
 
     # print("Satellite Dataset Scraper End!")

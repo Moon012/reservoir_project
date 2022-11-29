@@ -84,7 +84,7 @@ for i in fac:
                         try :
                             totalCount = int(soup.find('total_Count').string)
                         except Exception as e :
-                            print (e)
+                            raise Exception ("TOTAL COUNT ERROR")
 
                         if totalCount:
                             pass
@@ -95,7 +95,9 @@ for i in fac:
                             try : 
                                 if xstr(item.obsr_Spot_Code) is not None:
                                     cursor.execute(sql, (xstr(item.obsr_Spot_Code), xstr(item.obsr_Spot_Nm), xstr(item.date_Time), xstr(item.tmprt_150), xstr(item.tmprt_150Top), xstr(item.tmprt_150Lwet), xstr(item.tmprt_50), xstr(item.tmprt_50Top), xstr(item.tmprt_50Lwet), xstr(item.tmprt_400), xstr(item.tmprt_400Top), xstr(item.tmprt_400Lwet), xstr(item.hd_150), xstr(item.hd_50), xstr(item.hd_400), xstr(item.wd_300), xstr(item.wd_150), xstr(item.wd_1000), xstr(item.arvlty_300), xstr(item.arvlty_150), xstr(item.arvlty_1000), xstr(item.afp), xstr(item.afv), xstr(item.sunshn_Time), xstr(item.solrad_Qy), xstr(item.dwcn_Time), xstr(item.pnwg_Tp), xstr(item.frfr_Tp), xstr(item.udgr_Heatt_Cndctvt), xstr(item.udgr_Tp_10), xstr(item.udgr_Tp_5), xstr(item.udgr_Tp_20), xstr(item.soil_Mitr_10), xstr(item.soil_Mitr_10Cmst), xstr(item.soil_Mitr_20), xstr(item.soil_Mitr_20Cmst), xstr(item.soil_Mitr_30), xstr(item.soil_Mitr_30Cmst)))
+                                    connection.commit()
                             except Exception as e:
+                                connection.rollback()
                                 continue    
                             
                         page_size = int(params["Page_Size"])
@@ -106,15 +108,18 @@ for i in fac:
                         else :
                             page_no = 0
                             
-                        connection.commit()
-                            
                     elif soup.find('Result_Code').string == '201':
                         # 데이터가 특정일자부터 없는 관측소.... API 가 참 이상하다...
                         print("No Data")
                         break
                     else:
-                        # 기타 오류
-                        raise Exception('ERROR')
+                        try :
+                            if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
+                                pass    
+                            else : 
+                                raise Exception(soup.find('resultMsg').string)
+                        except: 
+                            raise Exception("ERROR")
                 else:
                     # Http 접속 오류
                     raise Exception('HTTP CONNECTION ERROR')
@@ -140,7 +145,6 @@ for i in fac:
 
     except Exception as e:
         print (e)
-        connection.rollback()
         cursor.close()
         connection.close()                        
         raise e

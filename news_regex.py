@@ -280,66 +280,16 @@ def news_regex_main():
                                 register_id     = user_id,
                                 rgsde           = 'now()',
                                 updusr_id       = user_id,
-                                updde           = 'now()'
+                                updde           = 'now()',
+                                news_year       = news_year,
+                                news_month      = news_month,
+                                news_day        = news_day,
                             ).on_conflict_do_nothing(
                                 constraint  = "pk_wss_news_kwrd_cnt"
                             )
                             
                             session.execute(insert_Kwrd_stmt)
                             
-                            
-                            # session.add(
-                            #     NewsKwrdCntVO(
-                            #         news_url        = news_url,
-                            #         kwrd_manage_no  = manage_vo.kwrd_manage_no,
-                            #         kwrd_colct_code = ivo.kwrd_colct_code,
-                            #         kwrd_code       = keywordObj[keyword],
-                            #         kwrd_co         = cnt,
-                            #         register_id     = user_id,
-                            #         rgsde           = 'now()',
-                            #         updusr_id       = user_id,
-                            #         updde           = 'now()'
-                            #     )
-                            # )
-
-                            dalyCntvo = session.query(WssNewsKwrdDalyCntVO).where(WssNewsKwrdDalyCntVO.news_year == news_year, WssNewsKwrdDalyCntVO.news_month == news_month,
-                                                                                  WssNewsKwrdDalyCntVO.news_day == news_day).first()
-                        
-                            dalyCnt = 0
-                            if dalyCntvo is not None :
-                               dalyCnt = dalyCntvo.kwrd_sm_co
-                            
-                            insert_daly_stmt = insert(WssNewsKwrdDalyCntVO).values(
-                                news_year   = news_year,
-                                news_month  = news_month,
-                                news_day    = news_day,
-                                kwrd_sm_co  = cnt,
-                                register_id = user_id,
-                                rgsde       = 'now()',
-                                updusr_id   = user_id,
-                                updde       = 'now()'
-                            )
-                            
-                            upsert_daly_stmt = insert_daly_stmt.on_conflict_do_update(
-                                constraint = "pk_wss_news_kwrd_daly_cnt",
-                                set_ = dict(kwrd_sm_co = dalyCnt + cnt, updde='now()')
-                            )
-                            
-                            session.execute(upsert_daly_stmt);
-                            
-                            # newsKwrdDalyCntVO = WssNewsKwrdDalyCntVO()
-                            # newsKwrdDalyCntVO.news_year = news_year
-                            # newsKwrdDalyCntVO.news_month = news_month
-                            # newsKwrdDalyCntVO.news_day = news_day
-                            # newsKwrdDalyCntVO.kwrd_sm_co = cnt if dalyCntvo == None else dalyCntvo.kwrd_sm_co + cnt
-                            # newsKwrdDalyCntVO.register_id = user_id
-                            # if newsKwrdDalyCntVO.rgsde == None:
-                            #     newsKwrdDalyCntVO.rgsde = 'now()'
-                            # newsKwrdDalyCntVO.updusr_id = user_id
-                            # newsKwrdDalyCntVO.updde = 'now()'
-
-                            # session.merge(newsKwrdDalyCntVO)
-
             session.commit()
 
             print("end loop : ", page)
