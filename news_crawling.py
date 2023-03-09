@@ -140,7 +140,7 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
                     #검색조건에 해당하는 모든 목록
                 for news_sj, news_url, new_source, news_cl_code in zip(title_text, link_text, source_text, link_category_cd):
 
-                    news_result_arr.append([news_sj, news_url, new_source, news_cl_code])
+                    news_result_arr.append([news_sj, news_url, new_source, news_cl_code, press_num])
 
             page += 10
             print("page : ", page)
@@ -151,7 +151,7 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
 
         news_result = i[1]
 
-        insert_column = "'"+news_result[0] +"', '"+ news_result[1]+"', '"+ news_result[2]+"', '"+s_from+" 00:00:00', '" + news_result[3] +"', now()"
+        insert_column = "'"+news_result[0] +"', '"+ news_result[1]+"', '"+ news_result[2]+"', '"+s_from+" 00:00:00', '" + news_result[3] +"', now(), '"+news_result[4]+"'"
 
         #뉴스 수집 키워드 정보
         insert_column2 = "'"+news_result[1] +"', 1, '"+ news_keyword_cd+"', 'admin', now()"
@@ -161,7 +161,7 @@ def get_news_list(news_keyword, sort, start_date, end_date, news_keyword_cd):
 
         #크롤링 데이터에 같은 url이 없으면
         if(exist_flag == False) :
-            db_connect.insert_db(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code, rgsde',data=insert_column)
+            db_connect.insert_db(schema='public',table=table_name,colum='news_sj, news_url, news_nsprc, news_rgsde, news_cl_code, rgsde, news_nsprc_cd',data=insert_column)
             db_connect.insert_db(schema='public',table=kwrd_table_name,colum='news_url, kwrd_manage_no, kwrd_colct_code, register_id, rgsde',data=insert_column2)
             print('INSERT 기사/키워드----------- {aa}/{bb} -- start_date: {ii}, end_date: {ff}, now_url: {ss}'.format(ii=start_date, ff=end_date, ss=news_result[1], aa=i[0], bb=len(news_result_arr)))
 
