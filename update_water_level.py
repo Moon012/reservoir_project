@@ -37,7 +37,7 @@ reservoir_level_params = {
             'pageNo' : '1', #페이지 번호
             'numOfRows' : '365', #한 페이지 결과 수
             'fac_code' : '4423010045',  #저수지 코드
-            'date_s' : '19910101',  #조회 시작 날짜
+            'date_s' : '20220101',  #조회 시작 날짜
             'date_e' : '20221231'   #조회 끝 날짜, 1년이 최대
         }
 
@@ -70,7 +70,7 @@ for i in reservoir:
         # Insert 쿼리
         sql = "INSERT INTO wss_water_level(fac_code, check_date, rate, water_level) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT pk_wss_water_level DO NOTHING "
         
-        # reservoir_level_params['date_s'] = str(start_date)
+        reservoir_level_params['date_s'] = str(start_date)
         reservoir_level_params['date_e'] = str(end_date)
         
         print(str(count) + " : " + reservoir_level_params['fac_code'] + " - " + reservoir_level_params['date_s'] + " ~ " + reservoir_level_params['date_e'])
@@ -97,14 +97,13 @@ for i in reservoir:
             else:
                 # 기타 오류
                 if soup.find('returnAuthMsg') is not None and soup.find('returnAuthMsg').string is not None :
-                    try :
+                    if soup.find('returnAuthMsg') is not None :
                         if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
-                            pass    
-                        else : 
+                            pass
+                        else :
                             raise Exception(soup.find('resultMsg').string)
-                    except: 
+                    else :
                         raise Exception("ERROR")
-                    
                 else :
                     raise Exception("ERROR")
         else:

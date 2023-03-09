@@ -95,13 +95,14 @@ for i in observatory:
             else:
                 # 기타 오류
                 if soup.find('resultMsg') is not None and soup.find('resultMsg').string is not None :
-                    try :
+                    
+                    if soup.find('returnAuthMsg') is not None :
                         if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
-                            pass    
-                        else : 
+                            pass
+                        else :
                             raise Exception(soup.find('resultMsg').string)
-                    except Exception as e: 
-                        raise Exception(e)
+                    else :
+                        raise Exception("ERROR")
                 else :
                     raise Exception("ERROR")
         else:

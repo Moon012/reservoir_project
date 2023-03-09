@@ -113,12 +113,12 @@ for i in fac:
                         print("No Data")
                         break
                     else:
-                        try :
+                        if soup.find('returnAuthMsg') is not None :
                             if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
-                                pass    
-                            else : 
+                                pass
+                            else :
                                 raise Exception(soup.find('resultMsg').string)
-                        except: 
+                        else :
                             raise Exception("ERROR")
                 else:
                     # Http 접속 오류
