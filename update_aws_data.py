@@ -108,7 +108,7 @@ for i in fac:
                         else :
                             page_no = 0
                             
-                    elif soup.find('Result_Code').string == '201':
+                    elif soup.find('result_Code').string == '201' :
                         # 데이터가 특정일자부터 없는 관측소.... API 가 참 이상하다...
                         print("No Data")
                         break
