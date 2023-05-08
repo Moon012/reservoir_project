@@ -101,7 +101,12 @@ for i in reservoir:
                         if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
                             pass
                         else :
-                            raise Exception(soup.find('resultMsg').string)
+                            if soup.find('resultMsg').string is not None :
+                                Exception(soup.find('returnAuthMsg').string)
+                            elif soup.find('resultMsg').string is not None:
+                                Exception(soup.find('resultMsg').string)
+                            else :
+                                raise Exception("ERROR")
                     else :
                         raise Exception("ERROR")
                 else :
