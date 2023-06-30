@@ -24,8 +24,10 @@ table_name = 'wss_news_colct' #뉴스 크롤링 테이블
 kwrd_table_name = 'wss_news_colct_kwrd_info' #뉴스 키워드 테이블
 
 # 모든 신문사
+#press_num_list = ['2844']
+
 press_num_list = ['1005', '1020', '1021', '1022' , '1023', '1025' , '1028', '1032', '1081', '1469' ,
-                  '2041', '2268', '2312', '2385', '2844']
+                   '2041', '2268', '2312', '2385', '2844']
 
 ## 네이버 지면
 #국민일보, 동아일보, 문화일보, 세계일보, 조선일보, 중앙일보, 한겨레, 경향신문, 서울신문, 한국일보  10개
@@ -236,7 +238,7 @@ def update_news_content(start_date, end_date, news_keyword_cd):
             if news_wrter_tag :
                 news_wrter = news_wrter_tag.text.replace(" ","").replace("'","''").strip()
             if not news_wrter_tag :
-                news_wrter = 'null'
+                news_wrter = ''
 
         # 아시아투데이 2268
         elif 'asiatoday.co' in now_url:
@@ -249,16 +251,10 @@ def update_news_content(start_date, end_date, news_keyword_cd):
                 news_updde = 'null'
                 news_text = soup.find('div',{'class':'news_bm'}).text
 
-                reporter_tag = soup.find('dl',{'itemprop':'articleBody'}).select_one('p.byline_wrap')
-                reporter_tag_2 = soup.find('div',{'class':'atooctns_reporter'})
-
+                reporter_tag = soup.select_one('#section_top > div > dl > dd > div > ul > li.gija_gubun > a')
                 if(reporter_tag != None) :
                     news_wrter = reporter_tag.text.strip()
-
-                elif(reporter_tag == None and reporter_tag_2 != None) :
-                    news_wrter = reporter_tag_2.select_one('dl > dt > ul > li:nth-child(2)').text.replace("\n","").replace(">"," ").strip()
-
-                elif(reporter_tag == None and reporter_tag_2 == None) :
+                else :
                     news_wrter = ''
 
             else :
@@ -286,30 +282,34 @@ def update_news_content(start_date, end_date, news_keyword_cd):
             if news_wrter_tag :
                 news_wrter = news_wrter_tag.text.strip()
             if not news_wrter_tag :
-                news_wrter = 'null'
+                news_wrter = ''
 
         # 천지일보 2041
         elif 'newscj' in now_url:
 
             if( soup != None and soup.text != '' ) :
 
-                news_rgsde_tag = soup.select_one('div.article_date > p:nth-child(2)')
-                if news_rgsde_tag :
-                    news_rgsde = soup.select_one('div.article_date > p:nth-child(2)').text.replace("승인 ","")
-                if not news_rgsde_tag:
-                    news_rgsde = 'null'
+                #입력, 수정 날짜 처리
+                date_info_list = soup.select('#articleViewCon > article > header > ul > li');
+                news_rgsde = 'null';
+                news_updde = 'null';
+                for a in date_info_list:
+                    date_info_text = a.text
+                    if '입력 ' in date_info_text:
+                        news_rgsde = date_info_text.replace("입력 ","")
 
-                news_updde = 'null'
+                    if '수정 ' in date_info_text:
+                        news_updde = date_info_text.replace("수정 ","")
 
-                news_text_tag = soup.select_one('#wrapper > div > div.container_wrap.article_cont_wrap > div.article_area > div.left_wrap > div')
+                news_text_tag = soup.select_one('#article-view-content-div')
                 if news_text_tag :
-                    news_text = soup.select_one('#wrapper > div > div.container_wrap.article_cont_wrap > div.article_area > div.left_wrap > div').text.strip()
+                    news_text = soup.select_one('#article-view-content-div').text.strip()
                 if not news_text_tag:
                     news_text = 'null'
 
-                news_wrter_tag = soup.find('p',{'id' : 'writeName'})
+                news_wrter_tag = soup.select_one('#articleViewCon > article > header > div > article.press-info');
                 if news_wrter_tag :
-                    news_wrter = soup.find('p',{'id' : 'writeName'}).text
+                    news_wrter = news_wrter_tag.text.replace("기자명","")
                 if not news_wrter_tag:
                     news_wrter = ''
 
@@ -386,8 +386,8 @@ def update_news_content(start_date, end_date, news_keyword_cd):
             if (news_updde != 'null'):
                 news_updde = "'"+news_updde+"'"
 
-            if (news_wrter != 'null'):
-                news_wrter = news_wrter.replace("'","''")
+            if (news_wrter != 'null' or news_wrter != ''):
+                news_wrter = news_wrter.strip().replace("'","''").replace("\n","").replace("\r","").replace("<br>","").replace("\t","").replace("글 사진 ","")
 
             if (news_cl_code != None):
                 news_condition = "news_bdt = '"+ news_text_clean + "', " +"news_rgsde = "+news_rgsde+ ", news_updde = "+ news_updde +", "  +"news_wrter = '"+news_wrter+ "' , news_dc_code = '"+comment_cd+"' , news_cl_code = '"+news_cl_code+ "', updde = now()"
