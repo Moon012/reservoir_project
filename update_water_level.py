@@ -52,7 +52,8 @@ for i in reservoir:
     
     try:
         start_date = int(str(datetime.today().year) + "0101")
-        end_date = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
+        # end_date = int((datetime.today() - timedelta(days=1)).strftime("%Y%m%d")) # 어제날짜까지 제공
+        end_date = int((datetime.today()).strftime("%Y%m%d")) # 어제날짜까지 제공
         
         #마지막 측정일 산출
         sql = "SELECT check_date FROM wss_water_level WHERE fac_code = '" + str(i) + "' ORDER BY check_date DESC limit 1"
@@ -101,9 +102,9 @@ for i in reservoir:
                         if soup.find('returnAuthMsg').string == "MINIMUM_DURATION_ERROR" :
                             pass
                         else :
-                            if soup.find('resultMsg').string is not None :
+                            if soup.find('returnAuthMsg') is not None and soup.find('returnAuthMsg') is not None :
                                 Exception(soup.find('returnAuthMsg').string)
-                            elif soup.find('resultMsg').string is not None:
+                            elif soup.find('resultMsg') is not None and soup.find('resultMsg').string is not None :
                                 Exception(soup.find('resultMsg').string)
                             else :
                                 raise Exception("ERROR")

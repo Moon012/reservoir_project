@@ -1,9 +1,9 @@
 #postgresql 접속정보
 #local
-db_host = '192.168.123.132'
-db_dbname = 'water'
-db_user = 'postgres'
-db_password = 'pispdb2021'
+db_host = 'localhost'
+db_dbname = 'postgres'
+db_user = 'moon'
+db_password = '1q2w3e4r'
 db_port = 5432
 
 #prod
